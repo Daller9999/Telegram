@@ -22,6 +22,8 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 
+import com.google.android.exoplayer2.util.Log;
+
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.LocaleController;
@@ -43,6 +45,7 @@ import org.telegram.ui.Cells.LoadingCell;
 import org.telegram.ui.Cells.RadioButtonCell;
 import org.telegram.ui.Cells.ShadowSectionCell;
 import org.telegram.ui.Cells.TextCell;
+import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.EditTextBoldCursor;
@@ -62,6 +65,7 @@ public class ChatEditTypeActivity extends BaseFragment implements NotificationCe
     private TextInfoPrivacyCell typeInfoCell;
     private HeaderCell headerCell;
     private HeaderCell headerCell2;
+    private HeaderCell headerCellMediaSetting;
     private TextInfoPrivacyCell checkTextView;
     private LinearLayout linearLayout;
     private ActionBarMenuItem doneButton;
@@ -71,12 +75,14 @@ public class ChatEditTypeActivity extends BaseFragment implements NotificationCe
     private RadioButtonCell radioButtonCell2;
     private LinearLayout adminnedChannelsLayout;
     private LinearLayout linkContainer;
+    private LinearLayout layoutMediaSettings;
     private LinearLayout publicContainer;
     private LinearLayout privateContainer;
     private LinkActionView permanentLinkView;
     private TextCell manageLinksTextView;
     private TextInfoPrivacyCell manageLinksInfoCell;
     private ShadowSectionCell sectionCell2;
+    private TextInfoPrivacyCell typeInfoCellMediaSettings;
     private TextInfoPrivacyCell infoCell;
     private TextSettingsCell textCell;
     private TextSettingsCell textCell2;
@@ -87,6 +93,7 @@ public class ChatEditTypeActivity extends BaseFragment implements NotificationCe
     private TLRPC.ChatFull info;
     private long chatId;
     private boolean isChannel;
+    private boolean canShowMedia = false;
 
     private boolean canCreatePublic = true;
     private boolean loadingAdminedChannels;
@@ -374,6 +381,38 @@ public class ChatEditTypeActivity extends BaseFragment implements NotificationCe
         typeInfoCell = new TextInfoPrivacyCell(context);
         linearLayout.addView(typeInfoCell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
+
+        // NEW ADDED CODE
+        layoutMediaSettings = new LinearLayout(context);
+        layoutMediaSettings.setOrientation(LinearLayout.VERTICAL);
+        layoutMediaSettings.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+        linearLayout.addView(layoutMediaSettings);
+
+        canShowMedia = currentChat.noforwards;
+        LinearLayout layout = new LinearLayout(context);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        TextCheckCell textCell = new TextCheckCell(context);
+        textCell.setTextAndCheck("Restricted saving content", canShowMedia, false);
+        textCell.setOnClickListener(v -> {
+            canShowMedia = !canShowMedia;
+            textCell.setChecked(canShowMedia);
+            TLRPC.TL_messages_toggleNoForwards messagesToggleNoForwards = new TLRPC.TL_messages_toggleNoForwards();
+            messagesToggleNoForwards.enabled = canShowMedia;
+            messagesToggleNoForwards.peer = getMessagesController().getInputPeer(-currentChat.id);
+            getConnectionsManager().sendRequest(messagesToggleNoForwards, (response, error) -> AndroidUtilities.runOnUIThread(this::updatePrivatePublic));
+        });
+        layout.addView(textCell);
+
+        headerCellMediaSetting = new HeaderCell(context, 23);
+        headerCellMediaSetting.setText("Saving content");
+        layoutMediaSettings.addView(headerCellMediaSetting);
+        layoutMediaSettings.addView(layout);
+        typeInfoCellMediaSettings = new TextInfoPrivacyCell(context);
+        String text = isChannel ? "channel" : "group";
+        typeInfoCellMediaSettings.setText("Participants won't be able to forward messages from this " + text + " or save media files");
+        linearLayout.addView(typeInfoCellMediaSettings, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+        // NEW ADDED CODE
+
         loadingAdminedCell = new LoadingCell(context);
         linearLayout.addView(loadingAdminedCell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
@@ -593,6 +632,8 @@ public class ChatEditTypeActivity extends BaseFragment implements NotificationCe
         }
         radioButtonCell1.setChecked(!isPrivate, true);
         radioButtonCell2.setChecked(isPrivate, true);
+        layoutMediaSettings.setVisibility(isPrivate ? View.VISIBLE : View.GONE);
+        typeInfoCellMediaSettings.setVisibility(isPrivate ? View.VISIBLE : View.GONE);
         usernameTextView.clearFocus();
         checkDoneButton();
     }
