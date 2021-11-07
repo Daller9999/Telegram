@@ -389,8 +389,6 @@ public class ChatEditTypeActivity extends BaseFragment implements NotificationCe
         linearLayout.addView(layoutMediaSettings);
 
         canShowMedia = currentChat.noforwards;
-        LinearLayout layout = new LinearLayout(context);
-        layout.setOrientation(LinearLayout.VERTICAL);
         TextCheckCell textCell = new TextCheckCell(context);
         textCell.setTextAndCheck("Restricted saving content", canShowMedia, false);
         textCell.setOnClickListener(v -> {
@@ -401,12 +399,11 @@ public class ChatEditTypeActivity extends BaseFragment implements NotificationCe
             messagesToggleNoForwards.peer = getMessagesController().getInputPeer(-currentChat.id);
             getConnectionsManager().sendRequest(messagesToggleNoForwards, (response, error) -> AndroidUtilities.runOnUIThread(this::updatePrivatePublic));
         });
-        layout.addView(textCell);
 
         headerCellMediaSetting = new HeaderCell(context, 23);
         headerCellMediaSetting.setText("Saving content");
         layoutMediaSettings.addView(headerCellMediaSetting);
-        layoutMediaSettings.addView(layout);
+        layoutMediaSettings.addView(textCell);
         typeInfoCellMediaSettings = new TextInfoPrivacyCell(context);
         String text = isChannel ? "channel" : "group";
         typeInfoCellMediaSettings.setText("Participants won't be able to forward messages from this " + text + " or save media files");
