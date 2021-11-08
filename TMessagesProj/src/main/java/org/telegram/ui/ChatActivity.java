@@ -4344,8 +4344,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         drawLaterRoundProgressCell = cell;
                     }
                     if (!skipDraw && scrimView instanceof ChatMessageCell) {
-                        ChatMessageCell cell2 = (ChatMessageCell) scrimView;
-                        if (cell2.getCurrentMessagesGroup() != null && cell2.getCurrentMessagesGroup() == group) {
+                        cell = (ChatMessageCell) scrimView;
+                        if (cell.getCurrentMessagesGroup() != null && cell.getCurrentMessagesGroup() == group) {
                             skipDraw = true;
                         }
                     }
@@ -19378,11 +19378,14 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     }
 
     private boolean canSaveData() {
-        boolean isMegagroup = ChatObject.isMegagroup(currentChat);
-        boolean isChannel = ChatObject.isChannelOrGiga(currentChat);
-        boolean isGroup = currentChat.participants_count > 2;
-        if (isMegagroup || isChannel || isGroup)
-            return !currentChat.noforwards;
+        TLRPC.Chat chat = currentChat;
+        if (chat != null) {
+            boolean isMegagroup = ChatObject.isMegagroup(chat);
+            boolean isChannel = ChatObject.isChannelOrGiga(chat);
+            boolean isGroup = chat.participants_count > 2;
+            if (isMegagroup || isChannel || isGroup)
+                return !chat.noforwards;
+        }
         return true;
     }
 
@@ -19543,7 +19546,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 selectedObjectGroup = groupedMessages;
 
                 if (type == -1) {
-                    if ( canSaveData() && (selectedObject.type == 0 || selectedObject.isAnimatedEmoji() || getMessageCaption(selectedObject, selectedObjectGroup) != null)) {
+                    if (canSaveData() && (selectedObject.type == 0 || selectedObject.isAnimatedEmoji() || getMessageCaption(selectedObject, selectedObjectGroup) != null)) {
                         items.add(LocaleController.getString("Copy", R.string.Copy));
                         options.add(3);
                         icons.add(R.drawable.msg_copy);
@@ -20224,12 +20227,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 shadowDrawableText.getPadding(backgroundPaddingsText);
                 popupLayoutText.setBackgroundColor(getThemedColor(Theme.key_actionBarDefaultSubmenuBackground));
 
-                ActionBarMenuSubItem cell = new ActionBarMenuSubItem(getParentActivity(), true, true, themeDelegate);
-                cell.setMultiline();
-                cell.setMinimumWidth(AndroidUtilities.dp(200));
+                ActionBarMenuSubItem subItemNoForward = new ActionBarMenuSubItem(getParentActivity(), true, true, themeDelegate);
+                subItemNoForward.setMultiline();
+                subItemNoForward.setMinimumWidth(AndroidUtilities.dp(200));
                 String channelOrNot = ChatObject.isChannel(currentChat) ? "channel" : "group";
-                cell.setText("Forwards from this " + channelOrNot + "\nare restricted.");
-                popupLayoutText.addView(cell);
+                subItemNoForward.setText("Forwards from this " + channelOrNot + "\nare restricted.");
+                popupLayoutText.addView(subItemNoForward);
             }
 
             scrimPopupContainerLayout.addView(popupLayout, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, showMessageSeen ? -8 : 0, 0, 0));
