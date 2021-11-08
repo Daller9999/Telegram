@@ -204,6 +204,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private StickerEmptyView emptyView;
     private boolean sharedMediaLayoutAttached;
     private SharedMediaLayout.SharedMediaPreloader sharedMediaPreloader;
+    private Theme.ResourcesProvider resourcesProvider;
 
     private RLottieDrawable cameraDrawable;
 
@@ -1296,12 +1297,13 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     }
 
     public ProfileActivity(Bundle args) {
-        this(args, null);
+        this(args, null, null);
     }
 
-    public ProfileActivity(Bundle args, SharedMediaLayout.SharedMediaPreloader preloader) {
+    public ProfileActivity(Bundle args, SharedMediaLayout.SharedMediaPreloader preloader, Theme.ResourcesProvider resourcesProvider) {
         super(args);
         sharedMediaPreloader = preloader;
+        this.resourcesProvider = resourcesProvider;
     }
 
     @Override
@@ -1887,7 +1889,18 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             did = -chatId;
         }
         ArrayList<Integer> users = chatInfo != null && chatInfo.participants != null && chatInfo.participants.participants.size() > 5 ? sortedUsers : null;
-        sharedMediaLayout = new SharedMediaLayout(context, did, sharedMediaPreloader, userInfo != null ? userInfo.common_chats_count : 0, sortedUsers, chatInfo, users != null, this, this, SharedMediaLayout.VIEW_TYPE_PROFILE_ACTIVITY) {
+        sharedMediaLayout = new SharedMediaLayout(
+                context,
+                currentChat,
+                did,
+                sharedMediaPreloader,
+                userInfo != null ? userInfo.common_chats_count : 0, sortedUsers, chatInfo,
+                users != null,
+                this,
+                this,
+                resourcesProvider,
+                SharedMediaLayout.VIEW_TYPE_PROFILE_ACTIVITY
+        ) {
             @Override
             protected void onSelectedTabChanged() {
                 updateSelectedMediaTabText();

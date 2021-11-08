@@ -163,7 +163,9 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
             }
         };
         avatarContainer.addView(mediaCounterTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.TOP, 118, 0, 56, 0));
-        sharedMediaLayout = new SharedMediaLayout(context, dialogId, sharedMediaPreloader, 0, null, currentChatInfo, false, this, new SharedMediaLayout.Delegate() {
+
+        TLRPC.Chat currentChat = getMessagesController().getChat(-dialogId);
+        sharedMediaLayout = new SharedMediaLayout(context, currentChat, dialogId, sharedMediaPreloader, 0, null, currentChatInfo, false, this, new SharedMediaLayout.Delegate() {
             @Override
             public void scrollToSharedMedia() {
 
@@ -198,7 +200,7 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
             public void updateSelectedMediaTabText() {
                 updateMediaCount();
             }
-        }, SharedMediaLayout.VIEW_TYPE_MEDIA_ACTIVITY) {
+        }, getResourceProvider(), SharedMediaLayout.VIEW_TYPE_MEDIA_ACTIVITY) {
             @Override
             protected void onSelectedTabChanged() {
                 updateMediaCount();

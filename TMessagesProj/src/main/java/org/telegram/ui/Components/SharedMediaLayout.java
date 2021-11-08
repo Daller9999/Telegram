@@ -1,7 +1,6 @@
 package org.telegram.ui.Components;
 
 import static org.telegram.messenger.MediaDataController.MEDIA_PHOTOVIDEO;
-import static org.telegram.messenger.MediaDataController.getMediaType;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -10,6 +9,7 @@ import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -58,6 +58,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.exoplayer2.util.Log;
 
+import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.ChatObject;
@@ -428,6 +429,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
     private boolean tabsAnimationInProgress;
     private boolean animatingForward;
     private boolean backAnimation;
+    private TextViewHelper textViewHelper;
 
     private long dialog_id;
     public boolean scrollingByUser;
@@ -1069,9 +1071,41 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
 
     final Delegate delegate;
 
-    public SharedMediaLayout(Context context, long did, SharedMediaPreloader preloader, int commonGroupsCount, ArrayList<Integer> sortedUsers, TLRPC.ChatFull chatInfo, boolean membersFirst, BaseFragment parent, Delegate delegate, int viewType) {
+    private TLRPC.Chat currentChat;
+
+    private boolean canForwardData() {
+        TLRPC.Chat chat = currentChat;
+        if (chat != null) {
+            boolean isMegagroup = ChatObject.isMegagroup(chat);
+            boolean isChannel = ChatObject.isChannelOrGiga(chat);
+            boolean isGroup = chat.participants_count > 2;
+            if (isMegagroup || isChannel || isGroup)
+                return !chat.noforwards;
+        }
+        return true;
+    }
+
+    private Theme.ResourcesProvider resourcesProvider;
+
+    public SharedMediaLayout(
+            Context context,
+            TLRPC.Chat currentChat,
+            long did,
+            SharedMediaPreloader preloader,
+            int commonGroupsCount,
+            ArrayList<Integer> sortedUsers,
+            TLRPC.ChatFull chatInfo,
+            boolean membersFirst,
+            BaseFragment parent,
+            Delegate delegate,
+            Theme.ResourcesProvider resourcesProvider,
+            int viewType
+    ) {
         super(context);
         this.viewType = viewType;
+        this.resourcesProvider = resourcesProvider;
+
+        this.currentChat = currentChat;
 
         globalGradientView = new FlickerLoadingView(context);
         globalGradientView.setIsSingleCell(true);
@@ -1431,7 +1465,12 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             forwardItem.setDuplicateParentStateEnabled(false);
             actionModeLayout.addView(forwardItem, new LinearLayout.LayoutParams(AndroidUtilities.dp(54), ViewGroup.LayoutParams.MATCH_PARENT));
             actionModeViews.add(forwardItem);
-            forwardItem.setOnClickListener(v -> onActionBarItemClick(forward));
+            if (canForwardData()) {
+                forwardItem.setOnClickListener(v -> onActionBarItemClick(forward));
+            } else {
+                forwardItem.setOnClickListener(v -> showTextHelp());
+                forwardItem.setAlpha(0.5f);
+            }
         }
         deleteItem = new ActionBarMenuItem(context, null, Theme.getColor(Theme.key_actionBarActionModeDefaultSelector), Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2), false);
         deleteItem.setIcon(R.drawable.msg_delete);
@@ -2156,6 +2195,19 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             return cell.getMessage().getId();
         }
         return 0;
+    }
+
+    private void showTextHelp() {
+        FrameLayout frameLayout = (FrameLayout) profileActivity.getFragmentView();
+        if (textViewHelper == null) {
+            textViewHelper = new TextViewHelper(frameLayout.getContext());
+            textViewHelper.setX(AndroidUtilities.dp(30));
+            textViewHelper.setLayoutParams(new FrameLayout.LayoutParams(AndroidUtilities.dp(305), AndroidUtilities.dp(48)));
+            frameLayout.addView(textViewHelper);
+        }
+        sharedMediaData[0].getStartOffset();
+        textViewHelper.setY(getMeasuredHeight() - visibleHeight + textViewHelper.getHeight());
+        textViewHelper.show();
     }
 
     private boolean changeTypeAnimation;
@@ -3433,8 +3485,13 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         }
     }
 
+    private int visibleHeight = 0;
     public void setVisibleHeight(int height) {
         height = Math.max(height, AndroidUtilities.dp(120));
+        visibleHeight = height;
+        if (textViewHelper != null) {
+            textViewHelper.setY(getMeasuredHeight() - visibleHeight + textViewHelper.getHeight());
+        }
         for (int a = 0; a < mediaPages.length; a++) {
             float t = -(getMeasuredHeight() - height) / 2f;
             mediaPages[a].emptyView.setTranslationY(t);

@@ -229,7 +229,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                     args.putLong("dialog_id", parentFragment.getDialogId());
                 }
                 args.putInt("actionBarColor", getThemedColor(Theme.key_actionBarDefault));
-                ProfileActivity fragment = new ProfileActivity(args, sharedMediaPreloader);
+                ProfileActivity fragment = new ProfileActivity(args, sharedMediaPreloader, resourcesProvider);
                 fragment.setUserInfo(parentFragment.getCurrentUserInfo());
                 fragment.setPlayProfileAnimation(byAvatar ? 2 : 1);
                 parentFragment.presentFragment(fragment);
@@ -237,7 +237,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         } else if (chat != null) {
             Bundle args = new Bundle();
             args.putLong("chat_id", chat.id);
-            ProfileActivity fragment = new ProfileActivity(args, sharedMediaPreloader);
+            ProfileActivity fragment = new ProfileActivity(args, sharedMediaPreloader, resourcesProvider);
             fragment.setChatInfo(parentFragment.getCurrentChatInfo());
             fragment.setPlayProfileAnimation(byAvatar ? 2 : 1);
             parentFragment.presentFragment(fragment);
