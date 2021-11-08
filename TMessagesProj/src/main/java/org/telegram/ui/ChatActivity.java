@@ -12364,12 +12364,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     forwardButtonAnimation = new AnimatorSet();
                     ArrayList<Animator> animators = new ArrayList<>();
                     if (forwardItem != null) {
-                        forwardItem.setEnabled(cantForwardMessagesCount == 0);
-                        animators.add(ObjectAnimator.ofFloat(forwardItem, View.ALPHA, cantForwardMessagesCount == 0 ? 1.0f : 0.5f));
+                        forwardItem.setEnabled(canSaveData() && cantForwardMessagesCount == 0);
+                        animators.add(ObjectAnimator.ofFloat(forwardItem, View.ALPHA, canSaveData() && cantForwardMessagesCount == 0 ? 1.0f : 0.5f));
                     }
                     if (forwardButton != null) {
-                        forwardButton.setEnabled(cantForwardMessagesCount == 0);
-                        animators.add(ObjectAnimator.ofFloat(forwardButton, View.ALPHA, cantForwardMessagesCount == 0 ? 1.0f : 0.5f));
+                        forwardButton.setEnabled(cantForwardMessagesCount == 0 && canSaveData());
+                        animators.add(ObjectAnimator.ofFloat(forwardButton, View.ALPHA, cantForwardMessagesCount == 0 && canSaveData() ? 1.0f : 0.5f));
                     }
                     forwardButtonAnimation.playTogether(animators);
                     forwardButtonAnimation.setDuration(100);
@@ -12382,22 +12382,22 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     forwardButtonAnimation.start();
                 } else {
                     if (forwardItem != null) {
-                        forwardItem.setEnabled(cantForwardMessagesCount == 0);
-                        forwardItem.setAlpha(cantForwardMessagesCount == 0 ? 1.0f : 0.5f);
+                        forwardItem.setEnabled(canSaveData() && cantForwardMessagesCount == 0);
+                        forwardItem.setAlpha(canSaveData() && cantForwardMessagesCount == 0 ? 1.0f : 0.5f);
                     }
                     if (forwardButton != null) {
-                        forwardButton.setEnabled(cantForwardMessagesCount == 0);
-                        forwardButton.setAlpha(cantForwardMessagesCount == 0 ? 1.0f : 0.5f);
+                        forwardButton.setEnabled(cantForwardMessagesCount == 0 && canSaveData());
+                        forwardButton.setAlpha(cantForwardMessagesCount == 0 && canSaveData() ? 1.0f : 0.5f);
                     }
                 }
                 if (saveItem != null) {
-                    saveItem.setVisibility(((canSaveMusicCount > 0 && canSaveDocumentsCount == 0) || (canSaveMusicCount == 0 && canSaveDocumentsCount > 0)) && cantSaveMessagesCount == 0 ? View.VISIBLE : View.GONE);
+                    saveItem.setVisibility(((canSaveMusicCount > 0 && canSaveDocumentsCount == 0) || (canSaveMusicCount == 0 && canSaveDocumentsCount > 0)) && cantSaveMessagesCount == 0 && canSaveData() ? View.VISIBLE : View.GONE);
                     saveItem.setContentDescription(canSaveMusicCount > 0 ? LocaleController.getString("SaveToMusic", R.string.SaveToMusic) : LocaleController.getString("SaveToDownloads", R.string.SaveToDownloads));
                 }
 
                 int copyVisible = copyItem.getVisibility();
                 int starVisible = starItem.getVisibility();
-                copyItem.setVisibility(selectedMessagesCanCopyIds[0].size() + selectedMessagesCanCopyIds[1].size() != 0 ? View.VISIBLE : View.GONE);
+                copyItem.setVisibility(canSaveData() && selectedMessagesCanCopyIds[0].size() + selectedMessagesCanCopyIds[1].size() != 0 ? View.VISIBLE : View.GONE);
                 starItem.setVisibility(getMediaDataController().canAddStickerToFavorites() && (selectedMessagesCanStarIds[0].size() + selectedMessagesCanStarIds[1].size()) == selectedCount ? View.VISIBLE : View.GONE);
                 int newCopyVisible = copyItem.getVisibility();
                 int newStarVisible = starItem.getVisibility();

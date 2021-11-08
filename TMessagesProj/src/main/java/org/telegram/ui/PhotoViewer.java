@@ -11991,7 +11991,10 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             return false;
         }
 
-        canForward = !chatActivity.currentChat.noforwards;
+        if (chatActivity != null) {
+            TLRPC.Chat chat = chatActivity.currentChat;
+            canForward = chat == null || !chat.noforwards;
+        }
 
         final PlaceProviderObject object = provider.getPlaceForPhoto(messageObject, fileLocation, index, true);
         lastInsets = null;
