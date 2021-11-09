@@ -35,7 +35,7 @@ public class TextViewHelper extends View {
     private final float leftText = AndroidUtilities.dp(17);
     private final float topText = AndroidUtilities.dp(26.5f);
 
-    private final String str = "Forwards from this channel are restricted";
+    private String str = "Forwards from this channel are restricted";
 
     private final Theme.ResourcesProvider resourcesProvider;
 
@@ -45,7 +45,7 @@ public class TextViewHelper extends View {
         setVisibility(GONE);
     }
 
-    public TextViewHelper(Context context, Theme.ResourcesProvider resourcesProvider) {
+    public TextViewHelper(Context context, Theme.ResourcesProvider resourcesProvider, boolean isChannel) {
         super(context);
         this.resourcesProvider = resourcesProvider;
 
@@ -57,6 +57,10 @@ public class TextViewHelper extends View {
         paintText.setTextSize(spToPx(15, getContext()));
 
         setVisibility(GONE);
+
+        if (!isChannel) {
+            str = "Forwards from this group are restricted";
+        }
     }
 
     private int getThemedColor(String key) {

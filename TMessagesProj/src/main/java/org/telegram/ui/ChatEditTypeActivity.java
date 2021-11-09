@@ -398,7 +398,7 @@ public class ChatEditTypeActivity extends BaseFragment implements NotificationCe
         headerCellMediaSetting = new HeaderCell(context, 23);
         headerCellMediaSetting.setText("Saving content");
         layoutMediaSettings.addView(headerCellMediaSetting);
-        layoutMediaSettings.addView(textCell);
+        layoutMediaSettings.addView(textCellForward);
         typeInfoCellMediaSettings = new TextInfoPrivacyCell(context);
         String text = isChannel ? "channel" : "group";
         typeInfoCellMediaSettings.setText("Participants won't be able to forward messages from this " + text + " or save media files");
