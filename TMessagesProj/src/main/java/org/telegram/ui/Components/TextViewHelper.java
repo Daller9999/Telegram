@@ -14,6 +14,7 @@ import android.view.View;
 import androidx.annotation.Nullable;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.ui.ActionBar.Theme;
 
 public class TextViewHelper extends View {
 
@@ -28,12 +29,14 @@ public class TextViewHelper extends View {
 
     private final float widthDp = AndroidUtilities.dp(5);
     private final float rightDp = AndroidUtilities.dp(3);
-    private final float topBottom = AndroidUtilities.dp(3.95f);
+    private final float topBottom = AndroidUtilities.dp(3.58f);
 
     private final float leftText = AndroidUtilities.dp(15);
-    private final float topText = AndroidUtilities.dp(25);
+    private final float topText = AndroidUtilities.dp(24.5f);
 
     private final String str = "Forwards from this channel are restricted";
+
+    private final Theme.ResourcesProvider resourcesProvider;
 
     private final Runnable dismissTunnable = this::hideInternal;
 
@@ -41,30 +44,23 @@ public class TextViewHelper extends View {
         setVisibility(GONE);
     }
 
-    public TextViewHelper(Context context) {
+    public TextViewHelper(Context context, Theme.ResourcesProvider resourcesProvider) {
         super(context);
-        init();
-    }
+        this.resourcesProvider = resourcesProvider;
 
-    public TextViewHelper(Context context, @Nullable AttributeSet attrs) {
-        super(context, attrs);
-        init();
-    }
-
-    public TextViewHelper(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
-        init();
-    }
-
-    private void init() {
-        paint.setColor(Color.parseColor("#b3000000"));
+        paint.setColor(getThemedColor(Theme.key_undo_background));
         paint.setStyle(Paint.Style.FILL);
         paint.setAntiAlias(true);
 
-        paintText.setColor(Color.WHITE);
+        paintText.setColor(getThemedColor(Theme.key_undo_infoColor));
         paintText.setTextSize(spToPx(15, getContext()));
 
         setVisibility(GONE);
+    }
+
+    private int getThemedColor(String key) {
+        Integer color = resourcesProvider != null ? resourcesProvider.getColor(key) : null;
+        return color != null ? color : Theme.getColor(key);
     }
 
     @Override
@@ -96,7 +92,7 @@ public class TextViewHelper extends View {
         path.close();
 
         int cx = (int) (getWidth() - 6 * widthDp - rightDp);
-        RectF rectF1 = new RectF(cx, getHeight() - topBottom - radius, cx + radius * 2, getHeight() - topBottom + radius);
+        RectF rectF1 = new RectF(cx, getHeight() - topBottom - radius, cx + radius * 2.2f, getHeight() - topBottom + radius);
         canvas.drawArc(rectF1, 30f, 120f, false, paint);
 
         canvas.drawPath(path, paint);
@@ -106,6 +102,7 @@ public class TextViewHelper extends View {
 
     void show() {
         setVisibility(VISIBLE);
+        AndroidUtilities.cancelRunOnUIThread(dismissTunnable);
         AndroidUtilities.runOnUIThread(dismissTunnable, 3000);
     }
 

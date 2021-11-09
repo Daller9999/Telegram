@@ -2200,13 +2200,15 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
     private void showTextHelp() {
         FrameLayout frameLayout = (FrameLayout) profileActivity.getFragmentView();
         if (textViewHelper == null) {
-            textViewHelper = new TextViewHelper(frameLayout.getContext());
-            textViewHelper.setX(AndroidUtilities.dp(30));
+            textViewHelper = new TextViewHelper(frameLayout.getContext(), resourcesProvider);
+            int x = AndroidUtilities.getRealScreenSize().x - AndroidUtilities.dp(355);
+            textViewHelper.setX(x);
             textViewHelper.setLayoutParams(new FrameLayout.LayoutParams(AndroidUtilities.dp(305), AndroidUtilities.dp(48)));
             frameLayout.addView(textViewHelper);
         }
         sharedMediaData[0].getStartOffset();
-        textViewHelper.setY(getMeasuredHeight() - visibleHeight + textViewHelper.getHeight());
+        int heightScreen = AndroidUtilities.getRealScreenSize().y;
+        textViewHelper.setY(heightScreen - visibleHeight - textViewHelper.getHeight() * 2 + AndroidUtilities.dp(10));
         textViewHelper.show();
     }
 
@@ -3487,10 +3489,11 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
 
     private int visibleHeight = 0;
     public void setVisibleHeight(int height) {
-        height = Math.max(height, AndroidUtilities.dp(120));
         visibleHeight = height;
+        height = Math.max(height, AndroidUtilities.dp(120));
         if (textViewHelper != null) {
-            textViewHelper.setY(getMeasuredHeight() - visibleHeight + textViewHelper.getHeight());
+            int heightScreen = AndroidUtilities.getRealScreenSize().y;
+            textViewHelper.setY(heightScreen - visibleHeight - textViewHelper.getHeight() * 2 + AndroidUtilities.dp(10));
         }
         for (int a = 0; a < mediaPages.length; a++) {
             float t = -(getMeasuredHeight() - height) / 2f;
