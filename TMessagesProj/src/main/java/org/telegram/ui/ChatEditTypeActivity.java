@@ -98,6 +98,7 @@ public class ChatEditTypeActivity extends BaseFragment implements NotificationCe
     private ShadowSectionCell adminedInfoCell;
     private ArrayList<AdminedChannelCell> adminedChannelCells = new ArrayList<>();
     private LoadingCell loadingAdminedCell;
+    private TextCheckCell textCellForward;
 
     private int checkReqId;
     private String lastCheckName;
@@ -387,11 +388,10 @@ public class ChatEditTypeActivity extends BaseFragment implements NotificationCe
         linearLayout.addView(layoutMediaSettings);
 
         canForward = currentChat.noforwards;
-        TextCheckCell textCell = new TextCheckCell(context);
-        textCell.setTextAndCheck("Restricted saving content", canForward, false);
-        textCell.setOnClickListener(v -> {
+        textCellForward = new TextCheckCell(context);
+        textCellForward.setTextAndCheck("Restricted saving content", canForward, false);
+        textCellForward.setOnClickListener(v -> {
             canForward = !canForward;
-            textCell.setChecked(canForward);
             sendForwardSettings();
         });
 
@@ -442,6 +442,7 @@ public class ChatEditTypeActivity extends BaseFragment implements NotificationCe
     }
 
     private void sendForwardSettings() {
+        textCellForward.setChecked(canForward);
         TLRPC.TL_messages_toggleNoForwards messagesToggleNoForwards = new TLRPC.TL_messages_toggleNoForwards();
         messagesToggleNoForwards.enabled = canForward;
         messagesToggleNoForwards.peer = getMessagesController().getInputPeer(-currentChat.id);
