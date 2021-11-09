@@ -16,6 +16,7 @@ import androidx.annotation.Nullable;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.ActionBar.Theme;
 
+@SuppressLint("ViewConstructor")
 public class TextViewHelper extends View {
 
     private final Paint paint = new Paint();
@@ -24,15 +25,15 @@ public class TextViewHelper extends View {
     private final int dp = 4;
     private final float top = AndroidUtilities.dp(dp);
     private final float left = AndroidUtilities.dp(dp);
-    private final float bottom = AndroidUtilities.dp(5);
+    private final float bottom = AndroidUtilities.dp(3);
     private final float rx = AndroidUtilities.dp(8);
 
-    private final float widthDp = AndroidUtilities.dp(5);
-    private final float rightDp = AndroidUtilities.dp(3);
-    private final float topBottom = AndroidUtilities.dp(3.58f);
+    private final float widthDp = AndroidUtilities.dp(3f);
+    private final float rightDp = AndroidUtilities.dp(3.5f);
+    private final float topBottom = bottom - AndroidUtilities.dp(1f);
 
-    private final float leftText = AndroidUtilities.dp(15);
-    private final float topText = AndroidUtilities.dp(24.5f);
+    private final float leftText = AndroidUtilities.dp(17);
+    private final float topText = AndroidUtilities.dp(26.5f);
 
     private final String str = "Forwards from this channel are restricted";
 

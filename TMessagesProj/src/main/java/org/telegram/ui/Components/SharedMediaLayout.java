@@ -2201,9 +2201,9 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         FrameLayout frameLayout = (FrameLayout) profileActivity.getFragmentView();
         if (textViewHelper == null) {
             textViewHelper = new TextViewHelper(frameLayout.getContext(), resourcesProvider);
-            int x = AndroidUtilities.getRealScreenSize().x - AndroidUtilities.dp(355);
-            textViewHelper.setX(x);
-            textViewHelper.setLayoutParams(new FrameLayout.LayoutParams(AndroidUtilities.dp(305), AndroidUtilities.dp(48)));
+            int width = AndroidUtilities.dp(305);
+            textViewHelper.setX(forwardItem.getX() - width + AndroidUtilities.dp(50));
+            textViewHelper.setLayoutParams(new FrameLayout.LayoutParams(width, AndroidUtilities.dp(48)));
             frameLayout.addView(textViewHelper);
         }
         sharedMediaData[0].getStartOffset();
@@ -4562,7 +4562,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                 int i = index - sharedMediaData[selectedMode].startOffset;
                 if (i >= 0 && i < sharedMediaData[selectedMode].messages.size()) {
                     PhotoViewer.getInstance().setParentActivity(profileActivity.getParentActivity());
-                    PhotoViewer.getInstance().openPhoto(sharedMediaData[selectedMode].messages, i, dialog_id, mergeDialogId, provider);
+                    PhotoViewer.getInstance().openPhoto(sharedMediaData[selectedMode].messages, currentChat, i, dialog_id, mergeDialogId, provider);
                 }
             } else if (selectedMode == 2 || selectedMode == 4) {
                 if (view instanceof SharedAudioCell) {

@@ -22,8 +22,6 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 
-import com.google.android.exoplayer2.util.Log;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.LocaleController;
@@ -93,7 +91,7 @@ public class ChatEditTypeActivity extends BaseFragment implements NotificationCe
     private TLRPC.ChatFull info;
     private long chatId;
     private boolean isChannel;
-    private boolean canShowMedia = false;
+    private boolean canForward = false;
 
     private boolean canCreatePublic = true;
     private boolean loadingAdminedChannels;
@@ -388,16 +386,13 @@ public class ChatEditTypeActivity extends BaseFragment implements NotificationCe
         layoutMediaSettings.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
         linearLayout.addView(layoutMediaSettings);
 
-        canShowMedia = currentChat.noforwards;
+        canForward = currentChat.noforwards;
         TextCheckCell textCell = new TextCheckCell(context);
-        textCell.setTextAndCheck("Restricted saving content", canShowMedia, false);
+        textCell.setTextAndCheck("Restricted saving content", canForward, false);
         textCell.setOnClickListener(v -> {
-            canShowMedia = !canShowMedia;
-            textCell.setChecked(canShowMedia);
-            TLRPC.TL_messages_toggleNoForwards messagesToggleNoForwards = new TLRPC.TL_messages_toggleNoForwards();
-            messagesToggleNoForwards.enabled = canShowMedia;
-            messagesToggleNoForwards.peer = getMessagesController().getInputPeer(-currentChat.id);
-            getConnectionsManager().sendRequest(messagesToggleNoForwards, (response, error) -> AndroidUtilities.runOnUIThread(this::updatePrivatePublic));
+            canForward = !canForward;
+            textCell.setChecked(canForward);
+            sendForwardSettings();
         });
 
         headerCellMediaSetting = new HeaderCell(context, 23);
@@ -444,6 +439,13 @@ public class ChatEditTypeActivity extends BaseFragment implements NotificationCe
         updatePrivatePublic();
 
         return fragmentView;
+    }
+
+    private void sendForwardSettings() {
+        TLRPC.TL_messages_toggleNoForwards messagesToggleNoForwards = new TLRPC.TL_messages_toggleNoForwards();
+        messagesToggleNoForwards.enabled = canForward;
+        messagesToggleNoForwards.peer = getMessagesController().getInputPeer(-currentChat.id);
+        getConnectionsManager().sendRequest(messagesToggleNoForwards, (response, error) -> AndroidUtilities.runOnUIThread(this::updatePrivatePublic));
     }
 
     @Override
@@ -569,6 +571,11 @@ public class ChatEditTypeActivity extends BaseFragment implements NotificationCe
     }
 
     private void updatePrivatePublic() {
+        if (!isPrivate) {
+            canForward = false;
+            sendForwardSettings();
+        }
+
         if (sectionCell2 == null) {
             return;
         }

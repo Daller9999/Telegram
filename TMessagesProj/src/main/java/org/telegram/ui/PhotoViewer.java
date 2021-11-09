@@ -7615,7 +7615,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                 }
             }
             if (allowShare && pageBlocksAdapter == null) {
-                if (visible) {
+                if (visible && canForward) {
                     menuItem.showSubItem(gallery_menu_share);
                 } else {
                     menuItem.hideSubItem(gallery_menu_share);
@@ -9853,7 +9853,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             menuItem.hideSubItem(gallery_menu_showall);
             if (bottomButtonsLayout.getVisibility() == View.VISIBLE) {
                 menuItem.hideSubItem(gallery_menu_share);
-            } else {
+            } else if (canForward) {
                 menuItem.showSubItem(gallery_menu_share);
             }
             setImageIndex(0);
@@ -10255,7 +10255,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                     bottomButtonsLayout.setVisibility(!videoPlayerControlVisible ? View.VISIBLE : View.GONE);
                     if (bottomButtonsLayout.getVisibility() == View.VISIBLE) {
                         menuItem.hideSubItem(gallery_menu_share);
-                    } else {
+                    } else if (canForward) {
                         menuItem.showSubItem(gallery_menu_share);
                     }
                 }
@@ -10311,7 +10311,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             bottomButtonsLayout.setVisibility(!videoPlayerControlVisible ? View.VISIBLE : View.GONE);
             if (bottomButtonsLayout.getVisibility() == View.VISIBLE) {
                 menuItem.hideSubItem(gallery_menu_share);
-            } else {
+            } else if (canForward) {
                 menuItem.showSubItem(gallery_menu_share);
             }
             groupedPhotosListView.fillList();
@@ -11691,39 +11691,43 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
     }
 
     public boolean openPhoto(final MessageObject messageObject, ChatActivity chatActivity, long dialogId, long mergeDialogId, final PhotoViewerProvider provider) {
-        return openPhoto(messageObject, null, null, null, null, null, null, 0, provider, chatActivity, dialogId, mergeDialogId, true, null, null);
+        return openPhoto(messageObject, null, null, null, null, null, null, 0, provider, chatActivity, dialogId, mergeDialogId, true, null, null, null);
     }
 
     public boolean openPhoto(final MessageObject messageObject, int embedSeekTime, ChatActivity chatActivity, long dialogId, long mergeDialogId, final PhotoViewerProvider provider) {
-        return openPhoto(messageObject, null, null, null, null, null, null, 0, provider, chatActivity, dialogId, mergeDialogId, true, null, embedSeekTime);
+        return openPhoto(messageObject, null, null, null, null, null, null, 0, provider, chatActivity, dialogId, mergeDialogId, true, null, embedSeekTime, null);
     }
 
     public boolean openPhoto(final MessageObject messageObject, long dialogId, long mergeDialogId, final PhotoViewerProvider provider, boolean fullScreenVideo) {
-        return openPhoto(messageObject, null, null, null, null, null, null, 0, provider, null, dialogId, mergeDialogId, fullScreenVideo, null, null);
+        return openPhoto(messageObject, null, null, null, null, null, null, 0, provider, null, dialogId, mergeDialogId, fullScreenVideo, null, null, null);
     }
 
     public boolean openPhoto(final TLRPC.FileLocation fileLocation, final PhotoViewerProvider provider) {
-        return openPhoto(null, fileLocation, null, null, null, null, null, 0, provider, null, 0, 0, true, null, null);
+        return openPhoto(null, fileLocation, null, null, null, null, null, 0, provider, null, 0, 0, true, null, null, null);
     }
 
     public boolean openPhotoWithVideo(final TLRPC.FileLocation fileLocation, ImageLocation videoLocation, final PhotoViewerProvider provider) {
-        return openPhoto(null, fileLocation, null, videoLocation, null, null, null, 0, provider, null, 0, 0, true, null, null);
+        return openPhoto(null, fileLocation, null, videoLocation, null, null, null, 0, provider, null, 0, 0, true, null, null, null);
     }
 
     public boolean openPhoto(final TLRPC.FileLocation fileLocation, final ImageLocation imageLocation, final PhotoViewerProvider provider) {
-        return openPhoto(null, fileLocation, imageLocation, null, null, null, null, 0, provider, null, 0, 0, true, null, null);
+        return openPhoto(null, fileLocation, imageLocation, null, null, null, null, 0, provider, null, 0, 0, true, null, null, null);
     }
 
     public boolean openPhoto(final ArrayList<MessageObject> messages, final int index, long dialogId, long mergeDialogId, final PhotoViewerProvider provider) {
-        return openPhoto(messages.get(index), null, null, null, messages, null, null, index, provider, null, dialogId, mergeDialogId, true, null, null);
+        return openPhoto(messages.get(index), null, null, null, messages, null, null, index, provider, null, dialogId, mergeDialogId, true, null, null, null);
+    }
+
+    public boolean openPhoto(final ArrayList<MessageObject> messages, TLRPC.Chat chatObject, final int index, long dialogId, long mergeDialogId, final PhotoViewerProvider provider) {
+        return openPhoto(messages.get(index), null, null, null, messages, null, null, index, provider, null, dialogId, mergeDialogId, true, null, null, chatObject);
     }
 
     public boolean openPhoto(final ArrayList<SecureDocument> documents, final int index, final PhotoViewerProvider provider) {
-        return openPhoto(null, null, null, null, null, documents, null, index, provider, null, 0, 0, true, null, null);
+        return openPhoto(null, null, null, null, null, documents, null, index, provider, null, 0, 0, true, null, null, null);
     }
 
     public boolean openPhoto(int index, PageBlocksAdapter pageBlocksAdapter, PhotoViewerProvider provider) {
-        return openPhoto(null, null, null, null, null, null, null, index, provider, null, 0, 0, true, pageBlocksAdapter, null);
+        return openPhoto(null, null, null, null, null, null, null, index, provider, null, 0, 0, true, pageBlocksAdapter, null, null);
     }
 
     public boolean openPhotoForSelect(final ArrayList<Object> photos, final int index, int type, boolean documentsPicker, final PhotoViewerProvider provider, ChatActivity chatActivity) {
@@ -11778,7 +11782,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             return true;
         }
         sendPhotoType = type;
-        return openPhoto(null, null, null, null, null, null, photos, index, provider, chatActivity, 0, 0, true, null, null);
+        return openPhoto(null, null, null, null, null, null, photos, index, provider, chatActivity, 0, 0, true, null, null, null);
     }
 
     private void openCurrentPhotoInPaintModeForSelect() {
@@ -11986,7 +11990,24 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         padImageForHorizontalInsets = true;
     }
 
-    public boolean openPhoto(final MessageObject messageObject, final TLRPC.FileLocation fileLocation, final ImageLocation imageLocation, final ImageLocation videoLocation, final ArrayList<MessageObject> messages, final ArrayList<SecureDocument> documents, final ArrayList<Object> photos, final int index, final PhotoViewerProvider provider, ChatActivity chatActivity, long dialogId, long mDialogId, boolean fullScreenVideo, PageBlocksAdapter pageBlocksAdapter, Integer embedSeekTime) {
+    public boolean openPhoto(
+            final MessageObject messageObject,
+            final TLRPC.FileLocation fileLocation,
+            final ImageLocation imageLocation,
+            final ImageLocation videoLocation,
+            final ArrayList<MessageObject> messages,
+            final ArrayList<SecureDocument> documents,
+            final ArrayList<Object> photos,
+            final int index,
+            final PhotoViewerProvider provider,
+            ChatActivity chatActivity,
+            long dialogId,
+            long mDialogId,
+            boolean fullScreenVideo,
+            PageBlocksAdapter pageBlocksAdapter,
+            Integer embedSeekTime,
+            TLRPC.Chat currentChat
+    ) {
         if (parentActivity == null || isVisible || provider == null && checkAnimation() || messageObject == null && fileLocation == null && messages == null && photos == null && documents == null && imageLocation == null && pageBlocksAdapter == null) {
             return false;
         }
@@ -11994,6 +12015,8 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         if (chatActivity != null) {
             TLRPC.Chat chat = chatActivity.currentChat;
             canForward = chat == null || !chat.noforwards;
+        } else if (currentChat != null) {
+            canForward = !currentChat.noforwards;
         }
 
         final PlaceProviderObject object = provider.getPlaceForPhoto(messageObject, fileLocation, index, true);
