@@ -2201,15 +2201,19 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         FrameLayout frameLayout = (FrameLayout) profileActivity.getFragmentView();
         if (textViewHelper == null) {
             textViewHelper = new TextViewHelper(frameLayout.getContext(), resourcesProvider, ChatObject.isChannel(currentChat));
-            int width = AndroidUtilities.dp(305);
-            textViewHelper.setX(forwardItem.getX() - width + AndroidUtilities.dp(50));
-            textViewHelper.setLayoutParams(new FrameLayout.LayoutParams(width, AndroidUtilities.dp(48)));
+            textViewHelper.setX(forwardItem.getX() - textViewHelper.getWidthView() + AndroidUtilities.dp(50));
             frameLayout.addView(textViewHelper);
         }
         sharedMediaData[0].getStartOffset();
-        int heightScreen = AndroidUtilities.getRealScreenSize().y;
-        textViewHelper.setY(heightScreen - visibleHeight - textViewHelper.getHeight() * 2 + AndroidUtilities.dp(10));
+        setTextViewHelperY();
         textViewHelper.show();
+    }
+
+    private void setTextViewHelperY() {
+        if (textViewHelper == null) return;
+
+        int heightScreen = AndroidUtilities.getRealScreenSize().y;
+        textViewHelper.setY(heightScreen - visibleHeight - textViewHelper.getHeight() * 2);
     }
 
     private boolean changeTypeAnimation;
@@ -3491,10 +3495,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
     public void setVisibleHeight(int height) {
         visibleHeight = height;
         height = Math.max(height, AndroidUtilities.dp(120));
-        if (textViewHelper != null) {
-            int heightScreen = AndroidUtilities.getRealScreenSize().y;
-            textViewHelper.setY(heightScreen - visibleHeight - textViewHelper.getHeight() * 2 + AndroidUtilities.dp(10));
-        }
+        setTextViewHelperY();
         for (int a = 0; a < mediaPages.length; a++) {
             float t = -(getMeasuredHeight() - height) / 2f;
             mediaPages[a].emptyView.setTranslationY(t);

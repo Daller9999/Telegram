@@ -10,6 +10,7 @@ import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.View;
+import android.widget.FrameLayout;
 
 import androidx.annotation.Nullable;
 
@@ -45,6 +46,8 @@ public class TextViewHelper extends View {
         setVisibility(GONE);
     }
 
+    private int widthView;
+
     public TextViewHelper(Context context, Theme.ResourcesProvider resourcesProvider, boolean isChannel) {
         super(context);
         this.resourcesProvider = resourcesProvider;
@@ -54,13 +57,23 @@ public class TextViewHelper extends View {
         paint.setAntiAlias(true);
 
         paintText.setColor(getThemedColor(Theme.key_undo_infoColor));
-        paintText.setTextSize(spToPx(15, getContext()));
+        int textSize = spToPx(14, getContext());
+        paintText.setTextSize(textSize);
 
         setVisibility(GONE);
 
         if (!isChannel) {
             str = "Forwards from this group are restricted";
         }
+        android.graphics.Rect bounds = new android.graphics.Rect();
+        paintText.getTextBounds(str, 0, str.length(), bounds);
+        int width = bounds.width();
+        widthView = (int) (width + leftText * 2);
+        setLayoutParams(new FrameLayout.LayoutParams(widthView, AndroidUtilities.dp(48)));
+    }
+
+    public int getWidthView() {
+        return widthView;
     }
 
     private int getThemedColor(String key) {

@@ -1311,8 +1311,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         SharedConfig.increaseScheduledOrNoSuoundHintShowed();
         if (scheduledOrNoSoundHint == null) {
             scheduledOrNoSoundHint = new HintView(getParentActivity(), 4, themeDelegate);
-            scheduledOrNoSoundHint.setShowingDuration(5000);
+            scheduledOrNoSoundHint.setShowingDuration(50000);
             scheduledOrNoSoundHint.setAlpha(0);
+            scheduledOrNoSoundHint.setText("Forwards from this channel are restricted");
             scheduledOrNoSoundHint.setVisibility(View.INVISIBLE);
             scheduledOrNoSoundHint.setText(LocaleController.getString("ScheduledOrNoSoundHint", R.string.ScheduledOrNoSoundHint));
             contentView.addView(scheduledOrNoSoundHint, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.TOP, 10, 0, 10, 0));
