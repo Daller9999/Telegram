@@ -1671,6 +1671,43 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
     private boolean isClickedOnAvatar = true;
     private AnimatorSet animationClickOnAvatar;
     private AnimatorSet animationClickOnClose;
+    private AvatarsSelectView avatarsSelectView;
+
+    private void initViewAndAddToLayout(FrameLayout frameLayout) {
+        if (avatarBackupView != null) {
+            frameLayout.removeView(avatarBackupView);
+        }
+        if (avatarCloseView != null) {
+            frameLayout.removeView(avatarCloseView);
+        }
+        frameLayout.addView(getImageClose(), LayoutHelper.createFrame(
+                avatarViewSize,
+                avatarViewSize,
+                Gravity.BOTTOM | Gravity.LEFT,
+                marginAvatarViewLeft,
+                0,
+                0,
+                marginAvatarViewBottom
+        ));
+        frameLayout.addView(getAvatarBackupView(), LayoutHelper.createFrame(
+                avatarViewSize,
+                avatarViewSize,
+                Gravity.BOTTOM | Gravity.LEFT,
+                marginAvatarViewLeft,
+                0,
+                0,
+                marginAvatarViewBottom
+        ));
+    }
+
+    private void clearResourcesAvatars() {
+        if (avatarBackupView != null) {
+            avatarBackupView = null;
+        }
+        if (avatarCloseView != null) {
+            avatarCloseView = null;
+        }
+    }
 
     private void loadAdminsChats() {
         TLRPC.TL_channels_getSendAs sendAs = new TLRPC.TL_channels_getSendAs();
@@ -1876,6 +1913,7 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
             }
         };
         frameLayout.setClipChildren(false);
+        initViewAndAddToLayout(frameLayout);
         textFieldContainer.addView(frameLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM, 0, 0, 48, 0));
 
         for (int a = 0; a < 2; a++) {
@@ -1890,35 +1928,6 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
                     }
                 }
             };
-            emojiButton[a].setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_chat_messagePanelIcons), PorterDuff.Mode.MULTIPLY));
-            emojiButton[a].setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-            if (Build.VERSION.SDK_INT >= 21) {
-                emojiButton[a].setBackgroundDrawable(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector)));
-            }
-            if (avatarBackupView != null) {
-                frameLayout.removeView(avatarBackupView);
-            }
-            if (avatarCloseView != null) {
-                frameLayout.removeView(avatarCloseView);
-            }
-            frameLayout.addView(getImageClose(), LayoutHelper.createFrame(
-                    avatarViewSize,
-                    avatarViewSize,
-                    Gravity.BOTTOM | Gravity.LEFT,
-                    marginAvatarViewLeft,
-                    0,
-                    0,
-                    marginAvatarViewBottom
-            ));
-            frameLayout.addView(getAvatarBackupView(), LayoutHelper.createFrame(
-                    avatarViewSize,
-                    avatarViewSize,
-                    Gravity.BOTTOM | Gravity.LEFT,
-                    marginAvatarViewLeft,
-                    0,
-                    0,
-                    marginAvatarViewBottom
-            ));
             frameLayout.addView(emojiButton[a], LayoutHelper.createFrame(
                     48,
                     48,
@@ -1928,6 +1937,11 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
                     0,
                     0
             ));
+            emojiButton[a].setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_chat_messagePanelIcons), PorterDuff.Mode.MULTIPLY));
+            emojiButton[a].setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+            if (Build.VERSION.SDK_INT >= 21) {
+                emojiButton[a].setBackgroundDrawable(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector)));
+            }
             emojiButton[a].setOnClickListener(view -> {
                 if (adjustPanLayoutHelper != null && adjustPanLayoutHelper.animationInProgress()) {
                     return;
@@ -3858,12 +3872,7 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
         if (emojiView != null) {
             emojiView.onDestroy();
         }
-        if (avatarBackupView != null) {
-            avatarBackupView = null;
-        }
-        if (avatarCloseView != null) {
-            avatarCloseView = null;
-        }
+        clearResourcesAvatars();
         if (updateSlowModeRunnable != null) {
             AndroidUtilities.cancelRunOnUIThread(updateSlowModeRunnable);
             updateSlowModeRunnable = null;
