@@ -1647,7 +1647,7 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
     }
 
 
-    //-------------------------------------------------------------------------------------------------------------------------------------
+    //--------------------Part code that works with select of current user or chat to send in group--------------------------------------------------------------------------
 
     private boolean isGroupOrChannel() {
         TLRPC.Chat chat = parentFragment.getCurrentChat();
@@ -1828,7 +1828,7 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
     private void updateMeasure() {
         measure(MeasureSpec.makeMeasureSpec(getWidth(), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(getHeight(), MeasureSpec.AT_MOST));
     }
-    //-------------------------------------------------------------------------------------------------------------------------------------
+    //--------------------Part code that works with select of current user or chat to send in group--------------------------------------------------------------------------
 
     public ChatActivityEnterView(Activity context, SizeNotifierFrameLayout parent, ChatActivity fragment, final boolean isChat) {
         this(context, parent, fragment, isChat, null);

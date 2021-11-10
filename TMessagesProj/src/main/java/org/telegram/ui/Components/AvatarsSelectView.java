@@ -14,7 +14,6 @@ import org.telegram.tgnet.TLObject;
 import java.util.ArrayList;
 
 public class AvatarsSelectView extends FrameLayout {
-//--------------------Part code that works with select of current user or chat to send in group--------------------------------------------------------------------------
 
     public AvatarsSelectView(@NonNull Context context) {
         super(context);
