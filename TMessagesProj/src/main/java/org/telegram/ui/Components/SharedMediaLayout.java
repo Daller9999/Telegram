@@ -2198,8 +2198,8 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
     }
 
     private void showTextHelp() {
-        FrameLayout frameLayout = (FrameLayout) profileActivity.getFragmentView();
         if (textViewHelper == null) {
+            FrameLayout frameLayout = (FrameLayout) profileActivity.getFragmentView();
             textViewHelper = new TextViewHelper(frameLayout.getContext(), resourcesProvider, ChatObject.isChannel(currentChat));
             textViewHelper.setX(forwardItem.getX() - textViewHelper.getWidthView() + AndroidUtilities.dp(50));
             frameLayout.addView(textViewHelper);
