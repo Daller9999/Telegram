@@ -46,7 +46,7 @@ public class TextViewHelper extends View {
         setVisibility(GONE);
     }
 
-    private int widthView;
+    private final int widthView;
 
     public TextViewHelper(Context context, Theme.ResourcesProvider resourcesProvider, boolean isChannel) {
         super(context);
@@ -59,6 +59,7 @@ public class TextViewHelper extends View {
         paintText.setColor(getThemedColor(Theme.key_undo_infoColor));
         int textSize = spToPx(14, getContext());
         paintText.setTextSize(textSize);
+        paintText.setAntiAlias(true);
 
         setVisibility(GONE);
 

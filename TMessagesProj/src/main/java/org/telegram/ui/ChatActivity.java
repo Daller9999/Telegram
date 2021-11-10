@@ -1532,6 +1532,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         getNotificationCenter().addObserver(this, NotificationCenter.diceStickersDidLoad);
         getNotificationCenter().addObserver(this, NotificationCenter.dialogDeleted);
 
+
         super.onFragmentCreate();
 
         if (chatMode == MODE_PINNED) {

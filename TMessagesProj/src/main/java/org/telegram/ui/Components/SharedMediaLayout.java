@@ -2211,9 +2211,9 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
 
     private void setTextViewHelperY() {
         if (textViewHelper == null) return;
-
-        int heightScreen = AndroidUtilities.getRealScreenSize().y;
-        textViewHelper.setY(heightScreen - visibleHeight - textViewHelper.getHeight() * 2);
+        FrameLayout frameLayout = (FrameLayout) profileActivity.getFragmentView();
+        int heightScreen = frameLayout.getHeight();
+        textViewHelper.setY(heightScreen - visibleHeight - textViewHelper.getHeight());
     }
 
     private boolean changeTypeAnimation;
