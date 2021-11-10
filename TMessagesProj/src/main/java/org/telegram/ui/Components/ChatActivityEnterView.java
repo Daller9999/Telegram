@@ -93,6 +93,8 @@ import androidx.customview.widget.ExploreByTouchHelper;
 import androidx.recyclerview.widget.ChatListItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.google.android.exoplayer2.util.Log;
+
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
@@ -476,9 +478,11 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
     private boolean clearBotButtonsOnKeyboardOpen;
     private boolean expandStickersWithKeyboard;
     private float doneButtonEnabledProgress = 1f;
-    private final Drawable doneCheckDrawable;
+    private Drawable doneCheckDrawable;
     boolean doneButtonEnabled = true;
     private ValueAnimator doneButtonColorAnimator;
+
+    private boolean groupOwner = true;
 
     private Runnable openKeyboardRunnable = new Runnable() {
         @Override
@@ -1645,10 +1649,76 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
         this(context, parent, fragment, isChat, null);
     }
 
+    private boolean isGroupOrChannel() {
+        TLRPC.Chat chat = parentFragment.getCurrentChat();
+        if (chat == null) return false;
+
+        boolean isMegagroup = ChatObject.isMegagroup(chat);
+        boolean isChannel = ChatObject.isChannelOrGiga(chat);
+        boolean isGroup = chat.participants_count > 2;
+        return isMegagroup || isChannel || isGroup;
+    }
+
+    private final ArrayList<TLRPC.Chat> sendAsChats = new ArrayList<>();
+    private BackupImageView avatarBackupView;
+    private final AvatarDrawable avatarDrawable;
+    private static final int marginAvatarViewBottom = 7;
+    private static final int marginAvatarViewLeft = 12;
+    private static final int avatarViewSize = 35;
+    private static final int marginAvatarDefault = avatarViewSize + marginAvatarViewLeft;
+    private int groupOwnerMargin = 48;
+
+    private void getAdminsChats() {
+        TLRPC.TL_channels_getSendAs sendAs = new TLRPC.TL_channels_getSendAs();
+        TLRPC.Chat currentChat = parentFragment.getCurrentChat();
+        groupOwnerMargin = 0;
+        avatarBackupView.setVisibility(View.GONE);
+        if (currentChat != null && isGroupOrChannel()) {
+            sendAs.peer = parentFragment.getMessagesController().getInputPeer(-currentChat.id);
+            parentFragment.getConnectionsManager().sendRequest(sendAs, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
+                sendAsChats.clear();
+                if (response != null) {
+                    Log.i("telegramTest", "response success");
+                    TLRPC.TL_channels_sendAsPeers sendAsPeers = (TLRPC.TL_channels_sendAsPeers) response;
+                    sendAsChats.addAll(sendAsPeers.chats);
+                    Log.i("telegramTest", "CHATS:");
+                    for (TLRPC.Chat chat : sendAsChats) {
+                        Log.i("telegramTest", "chat is " + chat.title);
+                    }
+                    Log.i("telegramTest", "PEERS:");
+                    for (TLRPC.Peer chat : sendAsPeers.peers) {
+                        Log.i("telegramTest", "peer is " + chat.channel_id + "; user id = " + chat.user_id);
+                    }
+                    Log.i("telegramTest", "USERS:");
+                    for (TLRPC.User user : sendAsPeers.users) {
+                        Log.i("telegramTest", "user is " + user.username);
+                        avatarBackupView.setForUserOrChat(user, avatarDrawable);
+                    }
+
+                    if (!sendAsPeers.users.isEmpty()) {
+                        avatarBackupView.setForUserOrChat(sendAsPeers.users.get(0), avatarDrawable);
+                    } else if (!sendAsPeers.chats.isEmpty()) {
+                        avatarBackupView.setForUserOrChat(sendAsPeers.chats.get(0), avatarDrawable);
+                    }
+                    groupOwnerMargin = sendAsPeers.peers.size() <= 1 ? 0 : marginAvatarDefault;
+                    avatarBackupView.setVisibility(sendAsPeers.peers.size() <= 1 ? View.GONE : View.VISIBLE);
+                    updateMeasure();
+                }
+            }));
+        }
+    }
+
+    private void updateMeasure() {
+        measure(MeasureSpec.makeMeasureSpec(getWidth(), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(getHeight(), MeasureSpec.AT_MOST));
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     public ChatActivityEnterView(Activity context, SizeNotifierFrameLayout parent, ChatActivity fragment, final boolean isChat, Theme.ResourcesProvider resourcesProvider) {
         super(context);
         this.resourcesProvider = resourcesProvider;
+        avatarBackupView = new BackupImageView(context);
+        avatarDrawable = new AvatarDrawable();
+        avatarBackupView.setRoundRadius(AndroidUtilities.dp(24));
 
         smoothKeyboard = isChat && SharedConfig.smoothKeyboard && !AndroidUtilities.isInMultiwindow && (fragment == null || !fragment.isInBubbleMode());
         dotPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -1743,7 +1813,27 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
             if (Build.VERSION.SDK_INT >= 21) {
                 emojiButton[a].setBackgroundDrawable(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector)));
             }
-            frameLayout.addView(emojiButton[a], LayoutHelper.createFrame(48, 48, Gravity.BOTTOM | Gravity.LEFT, 3, 0, 0, 0));
+            if (avatarBackupView != null) {
+                frameLayout.removeView(avatarBackupView);
+            }
+            frameLayout.addView(avatarBackupView, LayoutHelper.createFrame(
+                    avatarViewSize,
+                    avatarViewSize,
+                    Gravity.BOTTOM | Gravity.LEFT,
+                    marginAvatarViewLeft,
+                    0,
+                    0,
+                    marginAvatarViewBottom
+            ));
+            frameLayout.addView(emojiButton[a], LayoutHelper.createFrame(
+                    48,
+                    48,
+                    Gravity.BOTTOM | Gravity.LEFT,
+                    3 + groupOwnerMargin,
+                    0,
+                    0,
+                    0
+            ));
             emojiButton[a].setOnClickListener(view -> {
                 if (adjustPanLayoutHelper != null && adjustPanLayoutHelper.animationInProgress()) {
                     return;
@@ -2023,7 +2113,7 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
         messageEditText.setHintColor(getThemedColor(Theme.key_chat_messagePanelHint));
         messageEditText.setHintTextColor(getThemedColor(Theme.key_chat_messagePanelHint));
         messageEditText.setCursorColor(getThemedColor(Theme.key_chat_messagePanelCursor));
-        frameLayout.addView(messageEditText, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM, 52, 0, isChat ? 50 : 2, 0));
+        frameLayout.addView(messageEditText, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM, 52 + groupOwnerMargin, 0, isChat ? 50 : 2, 0));
         messageEditText.setOnKeyListener(new OnKeyListener() {
 
             boolean ctrlPressed = false;
@@ -2327,6 +2417,11 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
                 botButton.setBackgroundDrawable(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector)));
             }
             botButton.setVisibility(GONE);
+
+            /*View viewTest = new View(getContext());
+            viewTest.setBackgroundColor(Color.GRAY);
+            attachLayout.addView(viewTest, LayoutHelper.createFrame(48, 48));*/
+
             attachLayout.addView(botButton, LayoutHelper.createLinear(48, 48));
             botButton.setOnClickListener(v -> {
                 if (searchingType != 0) {
@@ -2994,6 +3089,8 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
         setRecordVideoButtonVisible(false, false);
         checkSendButton(false);
         checkChannelRights();
+
+        getAdminsChats();
     }
 
     private void checkBotMenu() {
@@ -3666,6 +3763,9 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.emojiLoaded);
         if (emojiView != null) {
             emojiView.onDestroy();
+        }
+        if (avatarBackupView != null) {
+            avatarBackupView = null;
         }
         if (updateSlowModeRunnable != null) {
             AndroidUtilities.cancelRunOnUIThread(updateSlowModeRunnable);
@@ -8403,14 +8503,14 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
         if (botCommandsMenuButton != null && botCommandsMenuButton.getTag() != null) {
             botCommandsMenuButton.measure(widthMeasureSpec, heightMeasureSpec);
             for (int i = 0; i < emojiButton.length; i++) {
-                ((MarginLayoutParams) emojiButton[i].getLayoutParams()).leftMargin = AndroidUtilities.dp(10) + botCommandsMenuButton.getMeasuredWidth();
+                ((MarginLayoutParams) emojiButton[i].getLayoutParams()).leftMargin = AndroidUtilities.dp(10 + groupOwnerMargin) + botCommandsMenuButton.getMeasuredWidth();
             }
-            ((MarginLayoutParams) messageEditText.getLayoutParams()).leftMargin = AndroidUtilities.dp(57) + botCommandsMenuButton.getMeasuredWidth();
+            ((MarginLayoutParams) messageEditText.getLayoutParams()).leftMargin = AndroidUtilities.dp(57 + groupOwnerMargin) + botCommandsMenuButton.getMeasuredWidth();
         } else {
             for (int i = 0; i < emojiButton.length; i++) {
-                ((MarginLayoutParams) emojiButton[i].getLayoutParams()).leftMargin = AndroidUtilities.dp(3);
+                ((MarginLayoutParams) emojiButton[i].getLayoutParams()).leftMargin = AndroidUtilities.dp(3 + groupOwnerMargin);
             }
-            ((MarginLayoutParams) messageEditText.getLayoutParams()).leftMargin = AndroidUtilities.dp(50);
+            ((MarginLayoutParams) messageEditText.getLayoutParams()).leftMargin = AndroidUtilities.dp(50 + groupOwnerMargin);
         }
         if (botCommandsMenuContainer != null) {
             int padding;
