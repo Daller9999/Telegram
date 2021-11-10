@@ -124,6 +124,7 @@ import org.telegram.ui.ActionBar.ActionBarMenuSubItem;
 import org.telegram.ui.ActionBar.ActionBarPopupWindow;
 import org.telegram.ui.ActionBar.AdjustPanLayoutHelper;
 import org.telegram.ui.ActionBar.AlertDialog;
+import org.telegram.ui.ActionBar.BackDrawable;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ChatActivity;
@@ -1645,9 +1646,8 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
         }
     }
 
-    public ChatActivityEnterView(Activity context, SizeNotifierFrameLayout parent, ChatActivity fragment, final boolean isChat) {
-        this(context, parent, fragment, isChat, null);
-    }
+
+    //-------------------------------------------------------------------------------------------------------------------------------------
 
     private boolean isGroupOrChannel() {
         TLRPC.Chat chat = parentFragment.getCurrentChat();
@@ -1661,18 +1661,23 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
 
     private final ArrayList<TLRPC.Chat> sendAsChats = new ArrayList<>();
     private BackupImageView avatarBackupView;
-    private final AvatarDrawable avatarDrawable;
+    private ImageView avatarCloseView;
+    private AvatarDrawable avatarDrawable;
     private static final int marginAvatarViewBottom = 7;
     private static final int marginAvatarViewLeft = 12;
-    private static final int avatarViewSize = 35;
+    private static final int avatarViewSize = 32;
     private static final int marginAvatarDefault = avatarViewSize + marginAvatarViewLeft;
     private int groupOwnerMargin = 48;
+    private boolean isClickedOnAvatar = true;
+    private AnimatorSet animationClickOnAvatar;
+    private AnimatorSet animationClickOnClose;
 
-    private void getAdminsChats() {
+    private void loadAdminsChats() {
         TLRPC.TL_channels_getSendAs sendAs = new TLRPC.TL_channels_getSendAs();
         TLRPC.Chat currentChat = parentFragment.getCurrentChat();
         groupOwnerMargin = 0;
         avatarBackupView.setVisibility(View.GONE);
+        avatarCloseView.setVisibility(View.GONE);
         if (currentChat != null && isGroupOrChannel()) {
             sendAs.peer = parentFragment.getMessagesController().getInputPeer(-currentChat.id);
             parentFragment.getConnectionsManager().sendRequest(sendAs, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
@@ -1701,24 +1706,101 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
                         avatarBackupView.setForUserOrChat(sendAsPeers.chats.get(0), avatarDrawable);
                     }
                     groupOwnerMargin = sendAsPeers.peers.size() <= 1 ? 0 : marginAvatarDefault;
-                    avatarBackupView.setVisibility(sendAsPeers.peers.size() <= 1 ? View.GONE : View.VISIBLE);
+
+                    int avatarVisibility = sendAsPeers.peers.size() <= 1 ? View.GONE : View.VISIBLE;
+                    avatarBackupView.setVisibility(avatarVisibility);
+                    avatarCloseView.setVisibility(avatarVisibility);
                     updateMeasure();
                 }
             }));
         }
     }
 
+    private ImageView getImageClose() {
+        if (avatarCloseView != null) return  avatarCloseView;
+
+        avatarCloseView = new ImageView(getContext());
+        int drawableSize = 56;
+        Drawable drawable = Theme.createSimpleSelectorCircleDrawable(
+                AndroidUtilities.dp(drawableSize),
+                Theme.getColor(Theme.key_chats_actionBackground),
+                Theme.getColor(Theme.key_chats_actionPressedBackground)
+        );
+        if (Build.VERSION.SDK_INT < 21) {
+            Drawable shadowDrawable = getContext().getResources().getDrawable(R.drawable.floating_shadow).mutate();
+            shadowDrawable.setColorFilter(new PorterDuffColorFilter(0xff000000, PorterDuff.Mode.MULTIPLY));
+            CombinedDrawable combinedDrawable = new CombinedDrawable(shadowDrawable, drawable, 0, 0);
+            combinedDrawable.setIconSize(AndroidUtilities.dp(drawableSize), AndroidUtilities.dp(drawableSize));
+            drawable = combinedDrawable;
+        }
+        avatarCloseView.setBackgroundDrawable(drawable);
+        avatarCloseView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_chats_actionIcon), PorterDuff.Mode.MULTIPLY));
+
+        int padding = AndroidUtilities.dp(5);
+        avatarCloseView.setPadding(padding, padding, padding, padding);
+        avatarCloseView.setImageResource(R.drawable.ic_close_white);
+
+        avatarCloseView.setOnClickListener(v -> updateAvatarViews());
+
+        return avatarCloseView;
+    }
+
+    private BackupImageView getAvatarBackupView() {
+        if (avatarBackupView != null) return avatarBackupView;
+
+        avatarBackupView = new BackupImageView(getContext());
+        avatarDrawable = new AvatarDrawable();
+        avatarBackupView.setRoundRadius(AndroidUtilities.dp(24));
+        avatarBackupView.setOnClickListener(v -> updateAvatarViews());
+        return avatarBackupView;
+    }
+
+    private void updateAvatarViews() {
+        if (animationClickOnAvatar != null) {
+            animationClickOnAvatar.cancel();
+        }
+        if (animationClickOnClose != null) {
+            animationClickOnClose.cancel();
+        }
+        animationClickOnAvatar = getAnimShowHide(isClickedOnAvatar, avatarBackupView);
+        animationClickOnAvatar.start();
+
+        animationClickOnClose = getAnimShowHide(!isClickedOnAvatar, avatarCloseView);
+        animationClickOnClose.start();
+
+        isClickedOnAvatar = !isClickedOnAvatar;
+    }
+
+    private AnimatorSet getAnimShowHide(boolean isHide, View view) {
+        AnimatorSet animatorSet = new AnimatorSet();
+        float scale = isHide ? 0f : 1f;
+        animatorSet.playTogether(
+                ObjectAnimator.ofFloat(view, View.SCALE_X, scale),
+                ObjectAnimator.ofFloat(view, View.SCALE_Y, scale),
+                ObjectAnimator.ofFloat(view, View.ALPHA, scale)
+        );
+        animatorSet.addListener(new AnimatorListenerAdapter() {
+            @Override public void onAnimationEnd(Animator animation) {
+                view.setVisibility(isHide ? View.GONE : View.VISIBLE);
+            }
+        });
+        animatorSet.setDuration(180);
+        return animatorSet;
+    }
+
     private void updateMeasure() {
         measure(MeasureSpec.makeMeasureSpec(getWidth(), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(getHeight(), MeasureSpec.AT_MOST));
+    }
+    //-------------------------------------------------------------------------------------------------------------------------------------
+
+    public ChatActivityEnterView(Activity context, SizeNotifierFrameLayout parent, ChatActivity fragment, final boolean isChat) {
+        this(context, parent, fragment, isChat, null);
     }
 
     @SuppressLint("ClickableViewAccessibility")
     public ChatActivityEnterView(Activity context, SizeNotifierFrameLayout parent, ChatActivity fragment, final boolean isChat, Theme.ResourcesProvider resourcesProvider) {
         super(context);
         this.resourcesProvider = resourcesProvider;
-        avatarBackupView = new BackupImageView(context);
-        avatarDrawable = new AvatarDrawable();
-        avatarBackupView.setRoundRadius(AndroidUtilities.dp(24));
 
         smoothKeyboard = isChat && SharedConfig.smoothKeyboard && !AndroidUtilities.isInMultiwindow && (fragment == null || !fragment.isInBubbleMode());
         dotPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -1816,7 +1898,19 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
             if (avatarBackupView != null) {
                 frameLayout.removeView(avatarBackupView);
             }
-            frameLayout.addView(avatarBackupView, LayoutHelper.createFrame(
+            if (avatarCloseView != null) {
+                frameLayout.removeView(avatarCloseView);
+            }
+            frameLayout.addView(getImageClose(), LayoutHelper.createFrame(
+                    avatarViewSize,
+                    avatarViewSize,
+                    Gravity.BOTTOM | Gravity.LEFT,
+                    marginAvatarViewLeft,
+                    0,
+                    0,
+                    marginAvatarViewBottom
+            ));
+            frameLayout.addView(getAvatarBackupView(), LayoutHelper.createFrame(
                     avatarViewSize,
                     avatarViewSize,
                     Gravity.BOTTOM | Gravity.LEFT,
@@ -3090,7 +3184,7 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
         checkSendButton(false);
         checkChannelRights();
 
-        getAdminsChats();
+        loadAdminsChats();
     }
 
     private void checkBotMenu() {
@@ -3766,6 +3860,9 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
         }
         if (avatarBackupView != null) {
             avatarBackupView = null;
+        }
+        if (avatarCloseView != null) {
+            avatarCloseView = null;
         }
         if (updateSlowModeRunnable != null) {
             AndroidUtilities.cancelRunOnUIThread(updateSlowModeRunnable);
