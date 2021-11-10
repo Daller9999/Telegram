@@ -2204,7 +2204,6 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             textViewHelper.setX(forwardItem.getX() - textViewHelper.getWidthView() + AndroidUtilities.dp(50));
             frameLayout.addView(textViewHelper);
         }
-        sharedMediaData[0].getStartOffset();
         setTextViewHelperY();
         textViewHelper.show();
     }
