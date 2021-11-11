@@ -1718,13 +1718,14 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
         sendAs.peer = messagesController.getInputPeer(-info.id);
         if (object instanceof TLRPC.User) {
             TLRPC.User user = (TLRPC.User) object;
-            sendAs.send_as = messagesController.getInputPeer(-user.id);
-            info.default_send_as = messagesController.getPeer(-user.id);
+            sendAs.send_as = messagesController.getInputPeer(user.id);
+            info.default_send_as = messagesController.getPeer(user.id);
         } else if (object instanceof TLRPC.Chat) {
             TLRPC.Chat chat = (TLRPC.Chat) object;
             sendAs.send_as = messagesController.getInputPeer(-chat.id);
             info.default_send_as = messagesController.getPeer(-chat.id);
         }
+        parentFragment.getMessagesStorage().updateChatInfo(info, false);
         avatarBackupView.setForUserOrChat(object, avatarDrawable);
         parentFragment.getConnectionsManager().sendRequest(sendAs, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
             if (response != null) {
