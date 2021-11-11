@@ -25,7 +25,7 @@ public class LayoutHelper {
 
     public static final int MATCH_PARENT = -1;
     public static final int WRAP_CONTENT = -2;
-    
+
     private static int getSize(float size) {
         return (int) (size < 0 ? size : AndroidUtilities.dp(size));
     }
@@ -79,6 +79,16 @@ public class LayoutHelper {
 
     public static FrameLayout.LayoutParams createFrame(int width, float height) {
         return new FrameLayout.LayoutParams(getSize(width), getSize(height));
+    }
+
+    public static LinearLayout.LayoutParams createFrameLL(int width, float height) {
+        return new LinearLayout.LayoutParams(getSize(width), getSize(height));
+    }
+
+    public static LinearLayout.LayoutParams createFrameLL(int width, float height, int gravity, float leftMargin, float topMargin, float rightMargin, float bottomMargin) {
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(getSize(width), getSize(height), gravity);
+        layoutParams.setMargins(AndroidUtilities.dp(leftMargin), AndroidUtilities.dp(topMargin), AndroidUtilities.dp(rightMargin), AndroidUtilities.dp(bottomMargin));
+        return layoutParams;
     }
 
     public static FrameLayout.LayoutParams createFrame(float width, float height, int gravity) {

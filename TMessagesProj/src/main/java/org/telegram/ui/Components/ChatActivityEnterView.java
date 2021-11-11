@@ -118,16 +118,17 @@ import org.telegram.messenger.Utilities;
 import org.telegram.messenger.VideoEditedInfo;
 import org.telegram.messenger.camera.CameraController;
 import org.telegram.tgnet.ConnectionsManager;
+import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenuSubItem;
 import org.telegram.ui.ActionBar.ActionBarPopupWindow;
 import org.telegram.ui.ActionBar.AdjustPanLayoutHelper;
 import org.telegram.ui.ActionBar.AlertDialog;
-import org.telegram.ui.ActionBar.BackDrawable;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ChatActivity;
+import org.telegram.ui.Components.avatarselectview.AvatarsSelectView;
 import org.telegram.ui.DialogsActivity;
 import org.telegram.ui.GroupStickersActivity;
 import org.telegram.ui.LaunchActivity;
@@ -1671,9 +1672,12 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
     private boolean isClickedOnAvatar = true;
     private AnimatorSet animationClickOnAvatar;
     private AnimatorSet animationClickOnClose;
+    private AnimatorSet animationOpenSelectView;
     private AvatarsSelectView avatarsSelectView;
 
     private void initViewAndAddToLayout(FrameLayout frameLayout) {
+        // avatarsSelectView.setLayoutParams(LayoutHelper.createFrame(AndroidUtilities.dp(200), AndroidUtilities.dp(400)));
+
         if (avatarBackupView != null) {
             frameLayout.removeView(avatarBackupView);
         }
@@ -1698,6 +1702,12 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
                 0,
                 marginAvatarViewBottom
         ));
+
+        avatarsSelectView = new AvatarsSelectView(getContext(), resourcesProvider);
+        FrameLayout frameLayoutMain = (FrameLayout) parentFragment.getFragmentView();
+        frameLayoutMain.addView(avatarsSelectView);
+        avatarsSelectView.setX(AndroidUtilities.dp(10));
+        avatarsSelectView.setY(AndroidUtilities.dp(400));
     }
 
     private void clearResourcesAvatars() {
@@ -1707,6 +1717,9 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
         if (avatarCloseView != null) {
             avatarCloseView = null;
         }
+        if (avatarsSelectView != null) {
+            avatarsSelectView = null;
+        }
     }
 
     private void loadAdminsChats() {
@@ -1715,26 +1728,31 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
         groupOwnerMargin = 0;
         avatarBackupView.setVisibility(View.GONE);
         avatarCloseView.setVisibility(View.GONE);
+        avatarsSelectView.setVisibility(View.GONE);
         if (currentChat != null && isGroupOrChannel()) {
             sendAs.peer = parentFragment.getMessagesController().getInputPeer(-currentChat.id);
             parentFragment.getConnectionsManager().sendRequest(sendAs, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
                 sendAsChats.clear();
                 if (response != null) {
+                    ArrayList<TLObject> objects = new ArrayList<>();
+
                     Log.i("telegramTest", "response success");
                     TLRPC.TL_channels_sendAsPeers sendAsPeers = (TLRPC.TL_channels_sendAsPeers) response;
                     sendAsChats.addAll(sendAsPeers.chats);
-                    Log.i("telegramTest", "CHATS:");
-                    for (TLRPC.Chat chat : sendAsChats) {
-                        Log.i("telegramTest", "chat is " + chat.title);
-                    }
-                    Log.i("telegramTest", "PEERS:");
-                    for (TLRPC.Peer chat : sendAsPeers.peers) {
-                        Log.i("telegramTest", "peer is " + chat.channel_id + "; user id = " + chat.user_id);
-                    }
                     Log.i("telegramTest", "USERS:");
                     for (TLRPC.User user : sendAsPeers.users) {
                         Log.i("telegramTest", "user is " + user.username);
                         avatarBackupView.setForUserOrChat(user, avatarDrawable);
+                        objects.add(user);
+                    }
+                    Log.i("telegramTest", "CHATS:");
+                    for (TLRPC.Chat chat : sendAsChats) {
+                        Log.i("telegramTest", "chat is " + chat.title);
+                        objects.add(chat);
+                    }
+                    Log.i("telegramTest", "PEERS:");
+                    for (TLRPC.Peer chat : sendAsPeers.peers) {
+                        Log.i("telegramTest", "peer is " + chat.channel_id + "; user id = " + chat.user_id);
                     }
 
                     if (!sendAsPeers.users.isEmpty()) {
@@ -1743,6 +1761,8 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
                         avatarBackupView.setForUserOrChat(sendAsPeers.chats.get(0), avatarDrawable);
                     }
                     groupOwnerMargin = sendAsPeers.peers.size() <= 1 ? 0 : marginAvatarDefault;
+
+                    avatarsSelectView.setCurrentObjects(objects);
 
                     int avatarVisibility = sendAsPeers.peers.size() <= 1 ? View.GONE : View.VISIBLE;
                     avatarBackupView.setVisibility(avatarVisibility);
@@ -1799,8 +1819,15 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
         if (animationClickOnClose != null) {
             animationClickOnClose.cancel();
         }
+        if (animationOpenSelectView != null) {
+            animationOpenSelectView.cancel();
+        }
+
         animationClickOnAvatar = getAnimShowHide(isClickedOnAvatar, avatarBackupView);
         animationClickOnAvatar.start();
+
+        animationOpenSelectView = getAnimSelectionShowHide(!isClickedOnAvatar, avatarsSelectView);
+        animationOpenSelectView.start();
 
         animationClickOnClose = getAnimShowHide(!isClickedOnAvatar, avatarCloseView);
         animationClickOnClose.start();
@@ -1821,6 +1848,25 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
                 view.setVisibility(isHide ? View.GONE : View.VISIBLE);
             }
         });
+        animatorSet.setDuration(180);
+        return animatorSet;
+    }
+
+    private AnimatorSet getAnimSelectionShowHide(boolean isHide, View view) {
+        AnimatorSet animatorSet = new AnimatorSet();
+        float scale = isHide ? 0f : 1f;
+        animatorSet.playTogether(
+                ObjectAnimator.ofFloat(view, View.SCALE_X, scale),
+                ObjectAnimator.ofFloat(view, View.SCALE_Y, scale),
+                ObjectAnimator.ofFloat(view, View.ALPHA, scale)
+        );
+        animatorSet.addListener(new AnimatorListenerAdapter() {
+            @Override public void onAnimationEnd(Animator animation) {
+                view.setVisibility(isHide ? View.GONE : View.VISIBLE);
+            }
+        });
+        view.setPivotX(0);
+        view.setPivotY(view.getHeight());
         animatorSet.setDuration(180);
         return animatorSet;
     }
