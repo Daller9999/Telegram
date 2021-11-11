@@ -1,5 +1,6 @@
 package org.telegram.ui.Components.avatarselectview;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Build;
 import android.util.AttributeSet;
@@ -15,6 +16,7 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.checkerframework.checker.units.qual.A;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.R;
 import org.telegram.tgnet.TLObject;
@@ -23,6 +25,7 @@ import org.telegram.ui.Components.LayoutHelper;
 
 import java.util.ArrayList;
 
+@SuppressLint("ViewConstructor")
 public class AvatarsSelectView extends LinearLayout {
 
     private AvatarsAdapter avatarsAdapter;
@@ -48,6 +51,10 @@ public class AvatarsSelectView extends LinearLayout {
     public AvatarsSelectView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes, Theme.ResourcesProvider resourcesProvider) {
         super(context, attrs, defStyleAttr, defStyleRes);
         init(resourcesProvider);
+    }
+
+    public void setAvatarSelectCallback(AvatarSelectCallback avatarSelectCallback) {
+        avatarsAdapter.setAvatarSelectCallback(avatarSelectCallback);
     }
 
     public void setCurrentObjects(ArrayList<TLObject> object) {
@@ -115,9 +122,5 @@ public class AvatarsSelectView extends LinearLayout {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(avatarsAdapter);
         addView(recyclerView);
-    }
-
-    void show() {
-
     }
 }

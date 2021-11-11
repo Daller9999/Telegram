@@ -128,6 +128,7 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ChatActivity;
+import org.telegram.ui.Components.avatarselectview.AvatarSelectCallback;
 import org.telegram.ui.Components.avatarselectview.AvatarsSelectView;
 import org.telegram.ui.DialogsActivity;
 import org.telegram.ui.GroupStickersActivity;
@@ -1661,6 +1662,7 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
     }
 
     private final ArrayList<TLRPC.Chat> sendAsChats = new ArrayList<>();
+    private final ArrayList<TLRPC.ChatFull> sendAsChatsFull = new ArrayList<>();
     private BackupImageView avatarBackupView;
     private ImageView avatarCloseView;
     private AvatarDrawable avatarDrawable;
@@ -1676,8 +1678,6 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
     private AvatarsSelectView avatarsSelectView;
 
     private void initViewAndAddToLayout(FrameLayout frameLayout) {
-        // avatarsSelectView.setLayoutParams(LayoutHelper.createFrame(AndroidUtilities.dp(200), AndroidUtilities.dp(400)));
-
         if (avatarBackupView != null) {
             frameLayout.removeView(avatarBackupView);
         }
@@ -1704,10 +1704,37 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
         ));
 
         avatarsSelectView = new AvatarsSelectView(getContext(), resourcesProvider);
+        avatarsSelectView.setAvatarSelectCallback(this::sendDataToServer);
         FrameLayout frameLayoutMain = (FrameLayout) parentFragment.getFragmentView();
         frameLayoutMain.addView(avatarsSelectView);
         avatarsSelectView.setX(AndroidUtilities.dp(10));
         avatarsSelectView.setY(AndroidUtilities.dp(400));
+    }
+
+    private void sendDataToServer(TLObject object) {
+        MessagesController messagesController = parentFragment.getMessagesController();
+
+        TLRPC.TL_messages_saveDefaultSendAs sendAs = new TLRPC.TL_messages_saveDefaultSendAs();
+        sendAs.peer = messagesController.getInputPeer(-info.id);
+        if (object instanceof TLRPC.User) {
+            TLRPC.User user = (TLRPC.User) object;
+            sendAs.send_as = messagesController.getInputPeer(-user.id);
+            info.default_send_as = messagesController.getPeer(-user.id);
+        } else if (object instanceof TLRPC.Chat) {
+            TLRPC.Chat chat = (TLRPC.Chat) object;
+            sendAs.send_as = messagesController.getInputPeer(-chat.id);
+            info.default_send_as = messagesController.getPeer(-chat.id);
+        }
+        avatarBackupView.setForUserOrChat(object, avatarDrawable);
+        parentFragment.getConnectionsManager().sendRequest(sendAs, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
+            if (response != null) {
+                Log.i("telegramTest", "response saveSendAs success");
+            }
+            if (error != null) {
+                Log.i("telegramTest", "response saveSendAs failed: " + error.text);
+            }
+        }));
+        updateAvatarViews();
     }
 
     private void clearResourcesAvatars() {
@@ -1749,13 +1776,21 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
                     for (TLRPC.Chat chat : sendAsChats) {
                         Log.i("telegramTest", "chat is " + chat.title);
                         objects.add(chat);
+                        TLRPC.ChatFull chatFull = parentFragment.getMessagesController().getChatFull(-chat.id);
+                        Log.i("telegramTest", "chat full is " + (chatFull == null ? "null" : chatFull.id));
                     }
                     Log.i("telegramTest", "PEERS:");
                     for (TLRPC.Peer chat : sendAsPeers.peers) {
                         Log.i("telegramTest", "peer is " + chat.channel_id + "; user id = " + chat.user_id);
                     }
 
-                    if (!sendAsPeers.users.isEmpty()) {
+                    if (info.default_send_as != null) {
+                        for (TLRPC.Chat chat : sendAsChats) {
+                            if (chat.id == info.default_send_as.chat_id || chat.id == info.default_send_as.channel_id) {
+                                avatarBackupView.setForUserOrChat(chat, avatarDrawable);
+                            }
+                        }
+                    } else if (!sendAsPeers.users.isEmpty()) {
                         avatarBackupView.setForUserOrChat(sendAsPeers.users.get(0), avatarDrawable);
                     } else if (!sendAsPeers.chats.isEmpty()) {
                         avatarBackupView.setForUserOrChat(sendAsPeers.chats.get(0), avatarDrawable);

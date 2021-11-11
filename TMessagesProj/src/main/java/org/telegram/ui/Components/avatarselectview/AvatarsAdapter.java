@@ -28,10 +28,14 @@ public class AvatarsAdapter extends RecyclerView.Adapter<AvatarsAdapter.AvatarHo
     private final Theme.ResourcesProvider resourcesProvider;
     private final ArrayList<TLObject> objects = new ArrayList<>();
     private static final int heightItem = 70;
-
+    private AvatarSelectCallback avatarSelectCallback;
 
     AvatarsAdapter(Theme.ResourcesProvider resourcesProvider) {
         this.resourcesProvider = resourcesProvider;
+    }
+
+    void setAvatarSelectCallback(AvatarSelectCallback avatarSelectCallback) {
+        this.avatarSelectCallback = avatarSelectCallback;
     }
 
     private int getThemedColor(String key) {
@@ -98,12 +102,12 @@ public class AvatarsAdapter extends RecyclerView.Adapter<AvatarsAdapter.AvatarHo
         ));
         frameLayout.addView(textViewInfo);
 
-        return new AvatarHolder(frameLayout, backupImageView, textViewName, textViewInfo);
+        return new AvatarHolder(frameLayout, backupImageView, textViewName, textViewInfo, avatarSelectCallback, objects);
     }
 
     @Override
     public void onBindViewHolder(@NonNull AvatarHolder holder, int position) {
-        holder.bind(objects.get(position));
+        holder.bind(objects.get(position), position);
     }
 
 
@@ -125,23 +129,32 @@ public class AvatarsAdapter extends RecyclerView.Adapter<AvatarsAdapter.AvatarHo
         private final TextView textViewInfo;
         private final BackupImageView backupImageView;
         private final AvatarDrawable avatarDrawable = new AvatarDrawable();
+        private int positionCurrent = 0;
 
         public AvatarHolder(
                 @NonNull View itemView,
                 BackupImageView backupImageView,
                 TextView textViewName,
-                TextView textViewInfo
+                TextView textViewInfo,
+                AvatarSelectCallback avatarSelectCallback,
+                ArrayList<TLObject> objects
         ) {
             super(itemView);
             this.backupImageView = backupImageView;
             this.textViewInfo = textViewInfo;
             this.textViewName = textViewName;
             backupImageView.setImageDrawable(avatarDrawable);
+            itemView.setOnClickListener(v -> {
+                if (avatarSelectCallback != null) {
+                    avatarSelectCallback.onObjectSelect(objects.get(positionCurrent));
+                }
+            });
         }
 
         @SuppressLint("SetTextI18n")
-        void bind(TLObject object) {
+        void bind(TLObject object, int positionCurrent) {
             backupImageView.setForUserOrChat(object, avatarDrawable);
+            this.positionCurrent = positionCurrent;
             if (object instanceof TLRPC.User) {
                 TLRPC.User user = (TLRPC.User) object;
                 textViewName.setText(user.username);
