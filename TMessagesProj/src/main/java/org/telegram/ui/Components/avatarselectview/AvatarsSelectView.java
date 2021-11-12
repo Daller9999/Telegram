@@ -72,10 +72,6 @@ public class AvatarsSelectView extends LinearLayout {
         ));
     }
 
-    public int getViewHeight() {
-        return AndroidUtilities.dp(400);
-    }
-
     private int getThemedColor(String key) {
         Integer color = resourcesProvider != null ? resourcesProvider.getColor(key) : null;
         return color != null ? color : Theme.getColor(key);

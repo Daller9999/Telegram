@@ -128,7 +128,6 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ChatActivity;
-import org.telegram.ui.Components.avatarselectview.AvatarSelectCallback;
 import org.telegram.ui.Components.avatarselectview.AvatarsSelectView;
 import org.telegram.ui.DialogsActivity;
 import org.telegram.ui.GroupStickersActivity;
@@ -707,6 +706,7 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
         protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
             drawable.setBounds(0, 0, getMeasuredWidth(), getMeasuredHeight());
+            updateSelectAccountY();
         }
 
         @Override
@@ -1027,6 +1027,7 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
                 distance = AndroidUtilities.dp(140);
             }
             slideDelta = (int) (-distance * (1f - slideToCancelProgress));
+            updateSelectAccountY();
         }
 
         @Override
@@ -1704,14 +1705,18 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
         ));
 
         avatarsSelectView = new AvatarsSelectView(getContext(), resourcesProvider);
-        avatarsSelectView.setAvatarSelectCallback(this::sendDataToServer);
+        avatarsSelectView.setAvatarSelectCallback(this::updateSendAsData);
         FrameLayout frameLayoutMain = (FrameLayout) parentFragment.getFragmentView();
         frameLayoutMain.addView(avatarsSelectView);
         avatarsSelectView.setX(AndroidUtilities.dp(10));
-        avatarsSelectView.setY(AndroidUtilities.dp(400));
+        updateSelectAccountY();
     }
 
-    private void sendDataToServer(TLObject object) {
+    private void updateSelectAccountY() {
+        avatarsSelectView.setY(getY() - avatarsSelectView.getHeight() - AndroidUtilities.dp(5));
+    }
+
+    private void updateSendAsData(TLObject object) {
         MessagesController messagesController = parentFragment.getMessagesController();
 
         TLRPC.TL_messages_saveDefaultSendAs sendAs = new TLRPC.TL_messages_saveDefaultSendAs();
@@ -1764,37 +1769,28 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
                 if (response != null) {
                     ArrayList<TLObject> objects = new ArrayList<>();
 
-                    Log.i("telegramTest", "response success");
                     TLRPC.TL_channels_sendAsPeers sendAsPeers = (TLRPC.TL_channels_sendAsPeers) response;
                     sendAsChats.addAll(sendAsPeers.chats);
-                    Log.i("telegramTest", "USERS:");
-                    for (TLRPC.User user : sendAsPeers.users) {
-                        Log.i("telegramTest", "user is " + user.username);
-                        avatarBackupView.setForUserOrChat(user, avatarDrawable);
-                        objects.add(user);
-                    }
-                    Log.i("telegramTest", "CHATS:");
-                    for (TLRPC.Chat chat : sendAsChats) {
-                        Log.i("telegramTest", "chat is " + chat.title);
-                        objects.add(chat);
-                        TLRPC.ChatFull chatFull = parentFragment.getMessagesController().getChatFull(-chat.id);
-                        Log.i("telegramTest", "chat full is " + (chatFull == null ? "null" : chatFull.id));
-                    }
-                    Log.i("telegramTest", "PEERS:");
-                    for (TLRPC.Peer chat : sendAsPeers.peers) {
-                        Log.i("telegramTest", "peer is " + chat.channel_id + "; user id = " + chat.user_id);
-                    }
+                    objects.addAll(sendAsPeers.users);
+                    objects.addAll(sendAsChats);
 
+                    boolean isFound = false;
                     if (info.default_send_as != null) {
                         for (TLRPC.Chat chat : sendAsChats) {
                             if (chat.id == info.default_send_as.chat_id || chat.id == info.default_send_as.channel_id) {
                                 avatarBackupView.setForUserOrChat(chat, avatarDrawable);
+                                isFound = true;
+                                break;
                             }
                         }
-                    } else if (!sendAsPeers.users.isEmpty()) {
-                        avatarBackupView.setForUserOrChat(sendAsPeers.users.get(0), avatarDrawable);
-                    } else if (!sendAsPeers.chats.isEmpty()) {
-                        avatarBackupView.setForUserOrChat(sendAsPeers.chats.get(0), avatarDrawable);
+                    }
+
+                    if (!isFound) {
+                        if (!sendAsPeers.users.isEmpty()) {
+                            avatarBackupView.setForUserOrChat(sendAsPeers.users.get(0), avatarDrawable);
+                        } else if (!sendAsPeers.chats.isEmpty()) {
+                            avatarBackupView.setForUserOrChat(sendAsPeers.chats.get(0), avatarDrawable);
+                        }
                     }
                     groupOwnerMargin = sendAsPeers.peers.size() <= 1 ? 0 : marginAvatarDefault;
 
@@ -2189,6 +2185,7 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
                     lineCount = getLineCount();
                 }
                 isInitLineCount = false;
+                updateSelectAccountY();
             }
 
             @Override
@@ -7580,6 +7577,8 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
             setStickersExpanded(false, false, false);
         }
         videoTimelineView.clearFrames();
+        Log.i("telegramTest", "hh = " + h);
+        updateSelectAccountY();
     }
 
     public boolean isStickersExpanded() {
@@ -7588,6 +7587,7 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
 
     @Override
     public void onSizeChanged(int height, boolean isWidthGreater) {
+        Log.i("telegramTest", "hh2 = " + height);
         if (searchingType != 0) {
             lastSizeChangeValue1 = height;
             lastSizeChangeValue2 = isWidthGreater;
@@ -8357,6 +8357,7 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
                 slideToLayout = new StaticLayout(slideToCancelString, grayPaint, (int) slideToCancelWidth, Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
                 cancelLayout = new StaticLayout(cancelString, bluePaint, (int) cancelWidth, Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
             }
+            updateSelectAccountY();
         }
 
         @Override
@@ -8724,6 +8725,7 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
                 botCommandsMenuContainer.listView.setPadding(0, padding, 0, AndroidUtilities.dp(8));
             }
         }
+        updateSelectAccountY();
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 
@@ -8737,6 +8739,7 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
             }
             botCommandLastPosition = -1;
         }
+        updateSelectAccountY();
     }
 
     private void beginDelayedTransition() {
