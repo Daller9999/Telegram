@@ -12012,6 +12012,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             return false;
         }
 
+        canForward = true;
         if (chatActivity != null) {
             TLRPC.Chat chat = chatActivity.currentChat;
             canForward = chat == null || !chat.noforwards;
