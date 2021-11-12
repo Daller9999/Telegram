@@ -16,6 +16,9 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.exoplayer2.util.Log;
+
+import org.checkerframework.checker.index.qual.PolyUpperBound;
 import org.checkerframework.checker.units.qual.A;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.R;
@@ -31,6 +34,7 @@ public class AvatarsSelectView extends LinearLayout {
     private AvatarsAdapter avatarsAdapter;
     private Theme.ResourcesProvider resourcesProvider;
     private RecyclerView recyclerView;
+    private int size;
 
     public AvatarsSelectView(@NonNull Context context, Theme.ResourcesProvider resourcesProvider) {
         super(context);
@@ -59,7 +63,19 @@ public class AvatarsSelectView extends LinearLayout {
 
     public void setCurrentObjects(ArrayList<TLObject> object) {
         avatarsAdapter.submitList(object);
-        int size = Math.min(500, object.size() * avatarsAdapter.getItemSize() + 50);
+        setDefaultHeight();
+    }
+
+    public void setDefaultHeight() {
+        updateHeight(500);
+    }
+
+    public int getSize() {
+        return size;
+    }
+
+    public void updateHeight(int newSize) {
+        size = Math.min(newSize, avatarsAdapter.getItemSize() * avatarsAdapter.getItemCount() + 50);
         setLayoutParams(LayoutHelper.createFrame(300, size));
         recyclerView.setLayoutParams(LayoutHelper.createFrameLL(
                 300,

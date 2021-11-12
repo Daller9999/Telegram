@@ -1708,12 +1708,33 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
         avatarsSelectView.setAvatarSelectCallback(this::updateSendAsData);
         FrameLayout frameLayoutMain = (FrameLayout) parentFragment.getFragmentView();
         frameLayoutMain.addView(avatarsSelectView);
-        avatarsSelectView.setX(AndroidUtilities.dp(10));
+        avatarsSelectView.setX(AndroidUtilities.dp(5));
         updateSelectAccountY();
     }
 
     private void updateSelectAccountY() {
-        avatarsSelectView.setY(getY() - avatarsSelectView.getHeight() - AndroidUtilities.dp(5));
+        avatarsSelectView.setDefaultHeight();
+        int height = AndroidUtilities.dp(avatarsSelectView.getSize());
+        if (!stickersExpanded) {
+            int heightScreen = AndroidUtilities.getRealScreenSize().y;
+            int normalY = (int) (heightScreen - getY());
+            if (keyboardVisible || normalY > heightScreen * 0.25f) {
+                int newSize = (int) ((heightScreen - normalY) / AndroidUtilities.density) - 40;
+                if (newSize < avatarsSelectView.getSize()) {
+                    height = AndroidUtilities.dp(newSize);
+                    avatarsSelectView.updateHeight(newSize);
+                }
+            } else {
+                avatarsSelectView.setDefaultHeight();
+                height = AndroidUtilities.dp(avatarsSelectView.getSize());
+            }
+        } else {
+            isClickedOnAvatar = false;
+            avatarsSelectView.setDefaultHeight();
+            height = AndroidUtilities.dp(avatarsSelectView.getSize());
+            updateAvatarViews();
+        }
+        avatarsSelectView.setY(getY() - height - AndroidUtilities.dp(5));
     }
 
     private void updateSendAsData(TLObject object) {
@@ -1733,11 +1754,8 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
         parentFragment.getMessagesStorage().updateChatInfo(info, false);
         avatarBackupView.setForUserOrChat(object, avatarDrawable);
         parentFragment.getConnectionsManager().sendRequest(sendAs, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
-            if (response != null) {
-                Log.i("telegramTest", "response saveSendAs success");
-            }
             if (error != null) {
-                Log.i("telegramTest", "response saveSendAs failed: " + error.text);
+                updateSendAsData(object);
             }
         }));
         updateAvatarViews();
@@ -1829,7 +1847,10 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
         avatarCloseView.setPadding(padding, padding, padding, padding);
         avatarCloseView.setImageResource(R.drawable.ic_close_white);
 
-        avatarCloseView.setOnClickListener(v -> updateAvatarViews());
+        avatarCloseView.setOnClickListener(v -> {
+            if (!stickersExpanded)
+                updateAvatarViews();
+        });
 
         return avatarCloseView;
     }
@@ -1840,7 +1861,10 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
         avatarBackupView = new BackupImageView(getContext());
         avatarDrawable = new AvatarDrawable();
         avatarBackupView.setRoundRadius(AndroidUtilities.dp(24));
-        avatarBackupView.setOnClickListener(v -> updateAvatarViews());
+        avatarBackupView.setOnClickListener(v -> {
+            if (!stickersExpanded)
+                updateAvatarViews();
+        });
         return avatarBackupView;
     }
 
@@ -7032,6 +7056,7 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
                 if (delegate != null) {
                     delegate.onStickersExpandedChange();
                 }
+                updateSelectAccountY();
             }
 
             @Override
@@ -7577,7 +7602,6 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
             setStickersExpanded(false, false, false);
         }
         videoTimelineView.clearFrames();
-        Log.i("telegramTest", "hh = " + h);
         updateSelectAccountY();
     }
 
@@ -7587,7 +7611,6 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
 
     @Override
     public void onSizeChanged(int height, boolean isWidthGreater) {
-        Log.i("telegramTest", "hh2 = " + height);
         if (searchingType != 0) {
             lastSizeChangeValue1 = height;
             lastSizeChangeValue2 = isWidthGreater;
@@ -8117,6 +8140,7 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
         } else {
             expandStickersButton.setContentDescription(LocaleController.getString("AccDescrExpandPanel", R.string.AccDescrExpandPanel));
         }
+        updateSelectAccountY();
     }
 
     public boolean swipeToBackEnabled() {
