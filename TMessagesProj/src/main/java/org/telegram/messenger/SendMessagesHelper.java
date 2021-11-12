@@ -1664,6 +1664,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                         TLRPC.ChatFull chatFull = getMessagesController().getChatFull(chat.id);
                         if (chatFull != null) {
                             linkedToGroup = chatFull.linked_chat_id;
+                            peerSendAs = getMessagesController().getInputPeer(chatFull.default_send_as);
                         }
                     }
                 }
@@ -1943,6 +1944,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                     getUserConfig().saveConfig(false);
 
                     final TLRPC.TL_messages_forwardMessages req = new TLRPC.TL_messages_forwardMessages();
+                    if (peerSendAs != null) {
+                        req.send_as = peerSendAs;
+                    }
                     req.to_peer = inputPeer;
                     req.silent = !notify || MessagesController.getNotificationsSettings(currentAccount).getBoolean("silent_" + peer, false);
                     if (scheduleDate != 0) {
@@ -3005,6 +3009,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             return;
         }
         TLRPC.TL_messages_sendMedia request = new TLRPC.TL_messages_sendMedia();
+        if (peerSendAs != null) {
+            request.send_as = peerSendAs;
+        }
         request.peer = peer;
         if (request.peer instanceof TLRPC.TL_inputPeerChannel) {
             request.silent = MessagesController.getNotificationsSettings(currentAccount).getBoolean("silent_" + -peer.channel_id, false);
@@ -3078,7 +3085,35 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         sendMessage(null, caption, null, photo, null, null, null, null, null, null, peer, path, replyToMsg, replyToTopMsg, null, true, null, entities, replyMarkup, params, notify, scheduleDate, ttl, parentObject, null);
     }
 
-    private void sendMessage(String message, String caption, TLRPC.MessageMedia location, TLRPC.TL_photo photo, VideoEditedInfo videoEditedInfo, TLRPC.User user, TLRPC.TL_document document, TLRPC.TL_game game, TLRPC.TL_messageMediaPoll poll, TLRPC.TL_messageMediaInvoice invoice, long peer, String path, MessageObject replyToMsg, MessageObject replyToTopMsg, TLRPC.WebPage webPage, boolean searchLinks, MessageObject retryMessageObject, ArrayList<TLRPC.MessageEntity> entities, TLRPC.ReplyMarkup replyMarkup, HashMap<String, String> params, boolean notify, int scheduleDate, int ttl, Object parentObject, MessageObject.SendAnimationData sendAnimationData) {
+    private TLRPC.InputPeer peerSendAs;
+
+    private void sendMessage(
+            String message,
+            String caption,
+            TLRPC.MessageMedia location,
+            TLRPC.TL_photo photo,
+            VideoEditedInfo videoEditedInfo,
+            TLRPC.User user,
+            TLRPC.TL_document document,
+            TLRPC.TL_game game,
+            TLRPC.TL_messageMediaPoll poll,
+            TLRPC.TL_messageMediaInvoice invoice,
+            long peer,
+            String path,
+            MessageObject replyToMsg,
+            MessageObject replyToTopMsg,
+            TLRPC.WebPage webPage,
+            boolean searchLinks,
+            MessageObject retryMessageObject,
+            ArrayList<TLRPC.MessageEntity> entities,
+            TLRPC.ReplyMarkup replyMarkup,
+            HashMap<String, String> params,
+            boolean notify,
+            int scheduleDate,
+            int ttl,
+            Object parentObject,
+            MessageObject.SendAnimationData sendAnimationData
+    ) {
         if (user != null && user.phone == null) {
             return;
         }
@@ -3102,6 +3137,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         boolean forceNoSoundVideo = false;
         boolean anonymously = false;
         String rank = null;
+        peerSendAs = null;
         long linkedToGroup = 0;
         TLRPC.EncryptedChat encryptedChat = null;
         TLRPC.InputPeer sendToPeer = !DialogObject.isEncryptedDialog(peer) ? getMessagesController().getInputPeer(peer) : null;
@@ -3120,10 +3156,11 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         } else if (sendToPeer instanceof TLRPC.TL_inputPeerChannel) {
             TLRPC.Chat chat = getMessagesController().getChat(sendToPeer.channel_id);
             isChannel = chat != null && !chat.megagroup;
+            TLRPC.ChatFull chatFull = getMessagesController().getChatFull(chat.id);
             if (isChannel && chat.has_link) {
-                TLRPC.ChatFull chatFull = getMessagesController().getChatFull(chat.id);
                 if (chatFull != null) {
                     linkedToGroup = chatFull.linked_chat_id;
+                    peerSendAs = getMessagesController().getInputPeer(chatFull.default_send_as);
                 }
             }
             anonymously = ChatObject.shouldSendAnonymously(chat);
@@ -3632,6 +3669,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             if (type == 0 || type == 9 && message != null && encryptedChat != null) {
                 if (encryptedChat == null) {
                     TLRPC.TL_messages_sendMessage reqSend = new TLRPC.TL_messages_sendMessage();
+                    if (peerSendAs != null) {
+                        reqSend.send_as = peerSendAs;
+                    }
                     reqSend.message = message;
                     reqSend.clear_draft = retryMessageObject == null;
                     reqSend.silent = newMsg.silent;
@@ -3969,6 +4009,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                             }
                             delayedMessage.sendRequest = request;
                         }
+                        if (peerSendAs != null) {
+                            request.send_as = peerSendAs;
+                        }
                         delayedMessage.messageObjects.add(newMsgObj);
                         delayedMessage.parentObjects.add(parentObject);
                         delayedMessage.locations.add(delayedMessage.photoSize);
@@ -3989,6 +4032,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                         reqSend = request;
                     } else {
                         TLRPC.TL_messages_sendMedia request = new TLRPC.TL_messages_sendMedia();
+                        if (peerSendAs != null) {
+                            request.send_as = peerSendAs;
+                        }
                         request.peer = sendToPeer;
                         request.silent = newMsg.silent;
                         if (newMsg.reply_to != null && newMsg.reply_to.reply_to_msg_id != 0) {
@@ -4329,6 +4375,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                 }
             } else if (type == 4) {
                 TLRPC.TL_messages_forwardMessages reqSend = new TLRPC.TL_messages_forwardMessages();
+                if (peerSendAs != null) {
+                    reqSend.send_as = peerSendAs;
+                }
                 reqSend.to_peer = sendToPeer;
                 reqSend.with_my_score = retryMessageObject.messageOwner.with_my_score;
                 if (params != null && params.containsKey("fwd_id")) {
@@ -4369,6 +4418,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                 performSendMessageRequest(reqSend, newMsgObj, null, null, parentObject, params, scheduleDate != 0);
             } else if (type == 9) {
                 TLRPC.TL_messages_sendInlineBotResult reqSend = new TLRPC.TL_messages_sendInlineBotResult();
+                if (peerSendAs != null) {
+                    reqSend.send_as = peerSendAs;
+                }
                 reqSend.peer = sendToPeer;
                 reqSend.random_id = newMsg.random_id;
                 reqSend.hide_via = !params.containsKey("bot");
@@ -4617,6 +4669,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                         }
                         if (message.sendRequest != null) {
                             TLRPC.TL_messages_sendMultiMedia request = (TLRPC.TL_messages_sendMultiMedia) message.sendRequest;
+                            if (peerSendAs != null) {
+                                request.send_as = peerSendAs;
+                            }
                             TLRPC.InputMedia media = request.multi_media.get(index).media;
                             if (media.file == null) {
                                 putToDelayedMessages(documentLocation, message);
@@ -4671,6 +4726,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                         TLObject inputMedia;
                         if (message.sendRequest != null) {
                             TLRPC.TL_messages_sendMultiMedia request = (TLRPC.TL_messages_sendMultiMedia) message.sendRequest;
+                            if (peerSendAs != null) {
+                                request.send_as = peerSendAs;
+                            }
                             inputMedia = request.multi_media.get(index).media;
                         } else {
                             TLRPC.TL_messages_sendEncryptedMultiMedia request = (TLRPC.TL_messages_sendEncryptedMultiMedia) message.sendEncryptedRequest;
@@ -5229,6 +5287,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                         removeFromSendingMessages(newMsgObj.id, scheduled);
                         if (req instanceof TLRPC.TL_messages_sendMedia) {
                             TLRPC.TL_messages_sendMedia request = (TLRPC.TL_messages_sendMedia) req;
+                            if (peerSendAs != null) {
+                                request.send_as = peerSendAs;
+                            }
                             if (request.media instanceof TLRPC.TL_inputMediaPhoto) {
                                 request.media = delayedMessage.inputUploadMedia;
                             } else if (request.media instanceof TLRPC.TL_inputMediaDocument) {

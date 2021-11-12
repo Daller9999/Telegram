@@ -84,7 +84,7 @@ public class AvatarsSelectView extends FrameLayout {
     }
 
     public void updateHeight(int newSize) {
-        size = Math.min(newSize, avatarsAdapter.getItemSize() * avatarsAdapter.getItemCount() + textView.getHeight());
+        size = Math.min(newSize, (avatarsAdapter.getItemSize() * avatarsAdapter.getItemCount() + (int) (textView.getHeight() / AndroidUtilities.density)));
         viewShadow.setY(linearLayout.getTop() + textView.getHeight());
         setLayoutParams(LayoutHelper.createFrame(300, size));
         linearLayout.setLayoutParams(LayoutHelper.createFrame(300, size));

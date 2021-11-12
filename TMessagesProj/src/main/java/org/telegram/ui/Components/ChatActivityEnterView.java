@@ -30,6 +30,7 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
+import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
@@ -92,8 +93,6 @@ import androidx.core.view.inputmethod.InputContentInfoCompat;
 import androidx.customview.widget.ExploreByTouchHelper;
 import androidx.recyclerview.widget.ChatListItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
-
-import com.google.android.exoplayer2.util.Log;
 
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
@@ -1685,6 +1684,7 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
         if (avatarCloseView != null) {
             frameLayout.removeView(avatarCloseView);
         }
+
         frameLayout.addView(getImageClose(), LayoutHelper.createFrame(
                 avatarViewSize,
                 avatarViewSize,
@@ -1790,7 +1790,6 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
                     TLRPC.TL_channels_sendAsPeers sendAsPeers = (TLRPC.TL_channels_sendAsPeers) response;
                     sendAsChats.addAll(sendAsPeers.chats);
                     objects.addAll(sendAsPeers.users);
-                    for (int i = 0; i < 10; i++)
                     objects.addAll(sendAsChats);
 
                     boolean isFound = false;
