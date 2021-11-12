@@ -2,10 +2,13 @@ package org.telegram.ui.Components.avatarselectview;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -29,12 +32,18 @@ import org.telegram.ui.Components.LayoutHelper;
 import java.util.ArrayList;
 
 @SuppressLint("ViewConstructor")
-public class AvatarsSelectView extends LinearLayout {
+public class AvatarsSelectView extends FrameLayout {
 
     private AvatarsAdapter avatarsAdapter;
     private Theme.ResourcesProvider resourcesProvider;
     private RecyclerView recyclerView;
+    private LinearLayout linearLayout;
+    private View viewShadow;
     private int size;
+    private int scroll = 0;
+    private TextView textView;
+    private static final int shadowTop = 4;
+    private static final int textViewHeight = 50;
 
     public AvatarsSelectView(@NonNull Context context, Theme.ResourcesProvider resourcesProvider) {
         super(context);
@@ -75,17 +84,10 @@ public class AvatarsSelectView extends LinearLayout {
     }
 
     public void updateHeight(int newSize) {
-        size = Math.min(newSize, avatarsAdapter.getItemSize() * avatarsAdapter.getItemCount() + 50);
+        size = Math.min(newSize, avatarsAdapter.getItemSize() * avatarsAdapter.getItemCount() + textView.getHeight());
+        viewShadow.setY(linearLayout.getTop() + textView.getHeight());
         setLayoutParams(LayoutHelper.createFrame(300, size));
-        recyclerView.setLayoutParams(LayoutHelper.createFrameLL(
-                300,
-                size - 50,
-                Gravity.LEFT,
-                0,
-                -10,
-                0,
-                0
-        ));
+        linearLayout.setLayoutParams(LayoutHelper.createFrame(300, size));
     }
 
     private int getThemedColor(String key) {
@@ -101,28 +103,37 @@ public class AvatarsSelectView extends LinearLayout {
         int width = 300;
         int height = 400;
         setLayoutParams(LayoutHelper.createFrame(width, height));
-        setOrientation(VERTICAL);
 
-        int textViewHeight = 50;
-        TextView textView = new TextView(getContext());
+        linearLayout = new LinearLayout(getContext());
+        linearLayout.setLayoutParams(LayoutHelper.createFrame(width, height));
+        linearLayout.setOrientation(LinearLayout.VERTICAL);
+        addView(linearLayout);
+
+        textView = new TextView(getContext());
         textView.setText("Send message as...");
         textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
         textView.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteBlueHeader));
         textView.setTypeface(AndroidUtilities.getTypeface("fonts/rmedium.ttf"));
         textView.setGravity(Gravity.CENTER_VERTICAL);
-        textView.setLayoutParams(LayoutHelper.createFrame(
+        textView.setLayoutParams(LayoutHelper.createFrameLL(
                 width,
                 textViewHeight,
-                Gravity.LEFT,
+                Gravity.NO_GRAVITY,
                 20,
                 0,
                 0,
                 0
         ));
-        addView(textView);
+        linearLayout.addView(textView);
+
+        viewShadow = new View(getContext());
+        viewShadow.setLayoutParams(LayoutHelper.createFrame(width, shadowTop));
+        viewShadow.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.shadow_top));
+        viewShadow.setAlpha(0f);
+        addView(viewShadow);
 
         recyclerView = new RecyclerView(getContext());
-        recyclerView.setLayoutParams(LayoutHelper.createFrame(
+        recyclerView.setLayoutParams(LayoutHelper.createFrameLL(
                 width,
                 height - textViewHeight,
                 Gravity.CENTER,
@@ -131,8 +142,20 @@ public class AvatarsSelectView extends LinearLayout {
                 0,
                 0
         ));
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                scroll += dy;
+                Log.i("telegramTest", "scroll = " + scroll);
+                if (scroll < 100) {
+                    viewShadow.setAlpha(scroll / 10f);
+                } else {
+                    viewShadow.setAlpha(1f);
+                }
+            }
+        });
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(avatarsAdapter);
-        addView(recyclerView);
+        linearLayout.addView(recyclerView);
     }
 }

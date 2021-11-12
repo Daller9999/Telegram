@@ -1790,6 +1790,7 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
                     TLRPC.TL_channels_sendAsPeers sendAsPeers = (TLRPC.TL_channels_sendAsPeers) response;
                     sendAsChats.addAll(sendAsPeers.chats);
                     objects.addAll(sendAsPeers.users);
+                    for (int i = 0; i < 10; i++)
                     objects.addAll(sendAsChats);
 
                     boolean isFound = false;
