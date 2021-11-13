@@ -1706,8 +1706,12 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
 
         avatarsSelectView = new AvatarsSelectView(getContext(), resourcesProvider);
         avatarsSelectView.setAvatarSelectCallback(this::updateSendAsData);
-        FrameLayout frameLayoutMain = (FrameLayout) parentFragment.getFragmentView();
-        frameLayoutMain.addView(avatarsSelectView);
+        if (parentFragment != null) {
+            FrameLayout frameLayoutMain = (FrameLayout) parentFragment.getFragmentView();
+            if (frameLayoutMain != null) {
+                frameLayoutMain.addView(avatarsSelectView);
+            }
+        }
         avatarsSelectView.setX(AndroidUtilities.dp(5));
         updateSelectAccountY();
     }
@@ -1738,6 +1742,8 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
     }
 
     private void updateSendAsData(TLObject object) {
+        if (parentFragment == null) return;
+
         MessagesController messagesController = parentFragment.getMessagesController();
 
         TLRPC.TL_messages_saveDefaultSendAs sendAs = new TLRPC.TL_messages_saveDefaultSendAs();
@@ -1774,6 +1780,8 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
     }
 
     private void loadAdminsChats() {
+        if (parentFragment == null) return;
+
         TLRPC.TL_channels_getSendAs sendAs = new TLRPC.TL_channels_getSendAs();
         TLRPC.Chat currentChat = parentFragment.getCurrentChat();
         groupOwnerMargin = 0;
