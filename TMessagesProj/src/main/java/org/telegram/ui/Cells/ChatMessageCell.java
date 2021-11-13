@@ -9599,7 +9599,8 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     }
 
     private boolean checkNeedDrawShareButton(MessageObject messageObject) {
-        if (currentMessageObject.deleted || currentMessageObject.isSponsored()) {
+        boolean noforwards = currentChat == null || !currentChat.noforwards;
+        if (currentMessageObject.deleted || currentMessageObject.isSponsored() || noforwards) {
             return false;
         }
         if (currentPosition != null) {
