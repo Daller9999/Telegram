@@ -4574,9 +4574,9 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                 if (index < 0) {
                     ArrayList<MessageObject> documents = new ArrayList<>();
                     documents.add(message);
-                    PhotoViewer.getInstance().openPhoto(documents, 0, 0, 0, provider);
+                    PhotoViewer.getInstance().openPhoto(documents, currentChat,0, 0, 0, provider);
                 } else {
-                    PhotoViewer.getInstance().openPhoto(sharedMediaData[selectedMode].messages, index, dialog_id, mergeDialogId, provider);
+                    PhotoViewer.getInstance().openPhoto(sharedMediaData[selectedMode].messages, currentChat, index, dialog_id, mergeDialogId, provider);
                 }
             } else if (selectedMode == 1) {
                 if (view instanceof SharedDocumentCell) {
@@ -4589,9 +4589,9 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                             if (index < 0) {
                                 ArrayList<MessageObject> documents = new ArrayList<>();
                                 documents.add(message);
-                                PhotoViewer.getInstance().openPhoto(documents, 0, 0, 0, provider);
+                                PhotoViewer.getInstance().openPhoto(documents, currentChat,0, 0, 0, provider);
                             } else {
-                                PhotoViewer.getInstance().openPhoto(sharedMediaData[selectedMode].messages, index, dialog_id, mergeDialogId, provider);
+                                PhotoViewer.getInstance().openPhoto(sharedMediaData[selectedMode].messages, currentChat, index, dialog_id, mergeDialogId, provider);
                             }
                             return;
                         }
