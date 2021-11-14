@@ -7,36 +7,7 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:334749375811:android:1ea3066303ddcf46fb23f6",
-        "android_client_info": {
-          "package_name": "org.telegram.messenger"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "334749375811-lp9k91ba0kc6q08j57mv3mc6vr0lfplg.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyCfbkdwqMZsyU0DjVFsZAiZfJunrxtfpmc"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "334749375811-lp9k91ba0kc6q08j57mv3mc6vr0lfplg.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-{
-      "client_info": {
-        "mobilesdk_app_id": "1:334749375811:android:1ea3066303ddcf46fb23f6",
+        "mobilesdk_app_id": "1:334749375811:android:a2167cba501b0592fb23f6",
         "android_client_info": {
           "package_name": "org.telegram.messenger"
         }
@@ -65,9 +36,67 @@
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:334749375811:android:5a71598424817eb8fb23f6",
+        "mobilesdk_app_id": "1:334749375811:android:f4d2fa2fd36071f1fb23f6",
         "android_client_info": {
           "package_name": "org.telegram.messenger.beta"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "334749375811-lp9k91ba0kc6q08j57mv3mc6vr0lfplg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCfbkdwqMZsyU0DjVFsZAiZfJunrxtfpmc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "334749375811-lp9k91ba0kc6q08j57mv3mc6vr0lfplg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:334749375811:android:fb41c1e43ffa4728fb23f6",
+        "android_client_info": {
+          "package_name": "org.telegram.messengertest"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "334749375811-lp9k91ba0kc6q08j57mv3mc6vr0lfplg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCfbkdwqMZsyU0DjVFsZAiZfJunrxtfpmc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "334749375811-lp9k91ba0kc6q08j57mv3mc6vr0lfplg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:334749375811:android:3b0f93d9068d04eafb23f6",
+        "android_client_info": {
+          "package_name": "org.telegram.messengertest.beta"
         }
       },
       "oauth_client": [

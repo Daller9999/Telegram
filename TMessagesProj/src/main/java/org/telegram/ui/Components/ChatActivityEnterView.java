@@ -1801,7 +1801,7 @@ public class ChatActivityEnterView extends FrameLayout implements NotificationCe
                     objects.addAll(sendAsChats);
 
                     boolean isFound = false;
-                    if (info.default_send_as != null) {
+                    if (info != null && info.default_send_as != null) {
                         for (TLRPC.Chat chat : sendAsChats) {
                             if (chat.id == info.default_send_as.chat_id || chat.id == info.default_send_as.channel_id) {
                                 avatarBackupView.setForUserOrChat(chat, avatarDrawable);
