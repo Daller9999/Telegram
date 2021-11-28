@@ -4,3 +4,16 @@ build/
 obj/
 *.iml
 local.properties
+*.json
+*.log
+TMessagesProj/.cxx/cmake/afatDebug/arm64-v8a/.ninja_deps
+TMessagesProj/.cxx/cmake/afatDebug/arm64-v8a/.ninja_log
+*.txt
+*.ninja
+TMessagesProj/.cxx/cmake/afatDebug/arm64-v8a/cmake_install.cmake
+*.cmake
+*.bin
+*.check_cache
+*.o
+*.c
+*.cxx
