@@ -267,6 +267,11 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
     @Override
     public void onResume() {
         super.onResume();
+        if (isNeedToUploadChatInfo) {
+            isNeedToUploadChatInfo = false;
+            info = MessagesStorage.getInstance(currentAccount).loadChatInfo(chatId, ChatObject.isChannel(currentChat), new CountDownLatch(1), false, false);
+            Log.i("telegramTest", "available count is " + info.available_reactions.size());
+        }
         if (nameTextView != null) {
             nameTextView.onResume();
             nameTextView.getEditText().requestFocus();
@@ -322,6 +327,7 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
         return checkDiscard();
     }
 
+    private boolean isNeedToUploadChatInfo = false;
     @Override
     public View createView(Context context) {
         if (nameTextView != null) {
@@ -827,6 +833,7 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
             ChatReactionEditActivity fragment = new ChatReactionEditActivity(args);
             fragment.setInfo(info);
             presentFragment(fragment);
+            isNeedToUploadChatInfo = true;
         });
 
         inviteLinksCell = new TextCell(context);

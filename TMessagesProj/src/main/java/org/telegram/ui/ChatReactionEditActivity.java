@@ -1,7 +1,9 @@
 package org.telegram.ui;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.util.TypedValue;
@@ -12,6 +14,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+
+import com.google.android.exoplayer2.util.Log;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ImageLoader;
@@ -33,6 +37,7 @@ import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class ChatReactionEditActivity extends BaseFragment {
 
@@ -44,6 +49,7 @@ public class ChatReactionEditActivity extends BaseFragment {
     private TextView textViewAvailableReactions;
     private LinearLayout linearLayoutMain;
     private HashMap<TextCheckCell, TLRPC.TL_availableReaction> cellHashMap = new HashMap<>();
+    private ArrayList<LinearLayout> layoutReactions = new ArrayList<>();
 
     @Override
     public boolean onFragmentCreate() {
@@ -72,7 +78,9 @@ public class ChatReactionEditActivity extends BaseFragment {
         linearLayoutMain.setOrientation(LinearLayout.VERTICAL);
         scrollView.addView(linearLayoutMain, new ScrollView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
+        Typeface type = Typeface.createFromAsset(context.getAssets(), "fonts/rmedium.ttf");
         textCheckCellEnableReaction = new TextCheckCell(context);
+        textCheckCellEnableReaction.getTextView().setTypeface(type);
         textCheckCellEnableReaction.setColors(
                 Theme.key_windowBackgroundWhite,
                 Theme.key_switchTrack,
@@ -84,10 +92,12 @@ public class ChatReactionEditActivity extends BaseFragment {
         textCheckCellEnableReaction.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, AndroidUtilities.dp(168)));
         textCheckCellEnableReaction.setOnClickListener(v -> {
             textCheckCellEnableReaction.setChecked(!textCheckCellEnableReaction.isChecked());
-            int newColor = Theme.getColor(textCheckCellEnableReaction.isChecked() ? Theme.key_windowBackgroundChecked : Theme.key_windowBackgroundUnchecked);
-            textCheckCellEnableReaction.setBackgroundColor(newColor);
+            updateVisibilityAll(textCheckCellEnableReaction.isChecked());
+            if (!textCheckCellEnableReaction.isChecked()) {
+                uploadAvailableReaction();
+            }
         });
-        textCheckCellEnableReaction.setTextAndCheck("Enable Reactions", true, false);
+        textCheckCellEnableReaction.setTextAndCheck("Enable Reactions", false, false);
         linearLayoutMain.addView(textCheckCellEnableReaction);
 
         TextView textView = new TextView(context);
@@ -103,6 +113,7 @@ public class ChatReactionEditActivity extends BaseFragment {
         textViewAvailableReactions.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
         textViewAvailableReactions.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, AndroidUtilities.dp(60)));
         textViewAvailableReactions.setText("Available reactions");
+        textViewAvailableReactions.setTypeface(type);
         textViewAvailableReactions.setPadding(AndroidUtilities.dp(20), 0, 0, 0);
         textViewAvailableReactions.setGravity(Gravity.CENTER_VERTICAL);
         linearLayoutMain.addView(textViewAvailableReactions);
@@ -112,50 +123,99 @@ public class ChatReactionEditActivity extends BaseFragment {
         return fragmentView;
     }
 
+    private void updateVisibilityAll(boolean isVisible) {
+        int visibility = isVisible ? View.VISIBLE : View.GONE;
+        for (LinearLayout layout : layoutReactions) {
+            layout.setVisibility(visibility);
+        }
+        int newColor = Theme.getColor(textCheckCellEnableReaction.isChecked() ? Theme.key_windowBackgroundChecked : Theme.key_windowBackgroundUnchecked);
+        textCheckCellEnableReaction.setBackgroundColor(newColor);
+        textViewAvailableReactions.setVisibility(visibility);
+    }
+
     private void madeRequestToBack() {
         TLRPC.TL_messages_getAvailableReactions messagesGetAvailableReactions = new TLRPC.TL_messages_getAvailableReactions();
         getConnectionsManager().sendRequest(messagesGetAvailableReactions, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
-            if (response != null) {
-                TLRPC.TL_messages_availableReactions availableReactions = (TLRPC.TL_messages_availableReactions) response;
-                TextCheckCell textCheckCell;
-                LinearLayout linearLayout;
-                BackupImageView imageView;
-                for (TLRPC.TL_availableReaction reaction : availableReactions.reactions) {
-                    linearLayout = new LinearLayout(linearLayoutMain.getContext());
+            if (response == null) return;
 
-                    imageView = new BackupImageView(linearLayoutMain.getContext());
-                    imageView.setImage(
-                            ImageLocation.getForDocument(reaction.static_icon),
-                            "50_50",
-                            "webp",
-                            null,
-                            linearLayout
-                    );
-                    imageView.setLayoutParams(LayoutHelper.createFrame(30, 30, Gravity.LEFT | Gravity.TOP, 20f, 10f, 0f, 0f));
-                    linearLayout.addView(imageView);
+            TLRPC.TL_messages_availableReactions availableReactions = (TLRPC.TL_messages_availableReactions) response;
+            TextCheckCell textCheckCell;
+            LinearLayout linearLayout;
+            BackupImageView imageView;
 
-                    textCheckCell = new TextCheckCell(linearLayoutMain.getContext());
-                    linearLayout.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
-                    linearLayout.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-                    linearLayout.setOrientation(LinearLayout.HORIZONTAL);
-                    linearLayout.addView(textCheckCell);
+            HashSet<String> set = new HashSet<>();
+            for (String reaction : chatFull.available_reactions) {
+                set.add(reaction);
+            }
 
-                    textCheckCell.setTextAndCheck(reaction.title, true, false);
-                    textCheckCell.setOnClickListener(this::onClick);
-                    cellHashMap.put(textCheckCell, reaction);
-                    linearLayoutMain.addView(linearLayout);
+            for (TLRPC.TL_availableReaction reaction : availableReactions.reactions) {
+                linearLayout = new LinearLayout(linearLayoutMain.getContext());
+
+                imageView = new BackupImageView(linearLayoutMain.getContext());
+                imageView.setImage(
+                        ImageLocation.getForDocument(reaction.static_icon),
+                        "50_50",
+                        "webp",
+                        null,
+                        linearLayout
+                );
+                imageView.setLayoutParams(LayoutHelper.createFrame(30, 30, Gravity.LEFT | Gravity.TOP, 20f, 10f, 0f, 0f));
+                linearLayout.addView(imageView);
+
+                textCheckCell = new TextCheckCell(linearLayoutMain.getContext());
+                linearLayout.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                linearLayout.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                linearLayout.setOrientation(LinearLayout.HORIZONTAL);
+                linearLayout.addView(textCheckCell);
+
+                textCheckCell.setTextAndCheck(reaction.title, set.contains(reaction.reaction), false);
+                textCheckCell.setOnClickListener(this::onClick);
+                cellHashMap.put(textCheckCell, reaction);
+                linearLayoutMain.addView(linearLayout);
+
+                layoutReactions.add(linearLayout);
+            }
+            textCheckCellEnableReaction.setChecked(chatFull.available_reactions.size() > 0);
+            updateVisibilityAll(textCheckCellEnableReaction.isChecked());
+        }));
+    }
+
+    private void uploadAvailableReaction() {
+        ArrayList<String> reactionsAvailable = new ArrayList<>();
+        if (textCheckCellEnableReaction.isChecked()) {
+            for (TextCheckCell cell : cellHashMap.keySet()) {
+                TLRPC.TL_availableReaction reaction = cellHashMap.get(cell);
+                if (reaction != null && cell.isChecked()) {
+                    reactionsAvailable.add(reaction.reaction);
                 }
+            }
+        }
+        chatFull.available_reactions = reactionsAvailable;
+        getMessagesStorage().updateChatInfo(chatFull, false);
+
+        TLRPC.TL_messages_setChatAvailableReactions chatAvailableReactions = new TLRPC.TL_messages_setChatAvailableReactions();
+        chatAvailableReactions.available_reactions = reactionsAvailable;
+        chatAvailableReactions.peer = getMessagesController().getInputPeer(-chatFull.id);
+        getConnectionsManager().sendRequest(chatAvailableReactions, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
+            if (response != null) {
+                Log.i("telegramTest", "reactions updated success");
+            }
+            if (error != null) {
+                Log.i("telegramTest", "reactions updated failed: " + error.text);
             }
         }));
     }
 
     private void onClick(View view) {
         TextCheckCell textCheckCell = (TextCheckCell) view;
-        TLRPC.TL_availableReaction reaction = cellHashMap.get(textCheckCell);
         textCheckCell.setChecked(!textCheckCell.isChecked());
-        if (reaction != null) {
+        uploadAvailableReaction();
+    }
 
-        }
+    @Override
+    public void onFragmentDestroy() {
+        uploadAvailableReaction();
+        super.onFragmentDestroy();
     }
 
     private SizeNotifierFrameLayout initGestureBackView(Context context) {
