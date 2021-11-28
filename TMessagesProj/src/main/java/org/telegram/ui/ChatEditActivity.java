@@ -824,7 +824,7 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
             Bundle args = new Bundle();
             args.putLong("chat_id", chatId);
             args.putInt("type", !isChannel && !currentChat.gigagroup ? ChatUsersActivity.TYPE_KICKED : ChatUsersActivity.TYPE_BANNED);
-            ChatUsersActivity fragment = new ChatUsersActivity(args);
+            ChatReactionEditActivity fragment = new ChatReactionEditActivity(args);
             fragment.setInfo(info);
             presentFragment(fragment);
         });
