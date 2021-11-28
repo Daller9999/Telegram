@@ -220,7 +220,20 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
         if (info != null) {
             loadLinksCount();
         }
+        initReactionsCount();
         return super.onFragmentCreate();
+    }
+
+    private int reactionsAvailableCount = 0;
+    private void initReactionsCount() {
+        TLRPC.TL_messages_getAvailableReactions messagesGetAvailableReactions = new TLRPC.TL_messages_getAvailableReactions();
+        getConnectionsManager().sendRequest(messagesGetAvailableReactions, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
+            if (response != null) {
+                TLRPC.TL_messages_availableReactions availableReactions = (TLRPC.TL_messages_availableReactions) response;
+                reactionsAvailableCount = availableReactions.reactions.size();
+                updateFields(true);
+            }
+        }));
     }
 
     private void loadLinksCount() {
@@ -1280,6 +1293,10 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
         }
     }
 
+    private String getAvailableReactions() {
+        return (info == null ? "0" : info.available_reactions.size()) + "/" + reactionsAvailableCount;
+    }
+
     private void updateFields(boolean updateChat) {
         if (updateChat) {
             TLRPC.Chat chat = getMessagesController().getChat(chatId);
@@ -1386,69 +1403,6 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
             }
         }
 
-        TLRPC.TL_messageReactions messageReactions = new TLRPC.TL_messageReactions();
-        getConnectionsManager().sendRequest(messageReactions, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
-            if (response != null) {
-                int tu = response.networkType;
-            }
-            if (error != null) {
-                int str = error.code;
-            }
-            int a = 5;
-            int b = a + 5;
-            Log.i("telegramTest", "response mr = " + (response != null) + " ; error: " + (error != null ? error.text : "null"));
-        }));
-
-
-        TLRPC.ChatFull
-
-        TLRPC.TL_messages_getMessageReactionsList messagesReactionsList = new TLRPC.TL_messages_getMessageReactionsList();
-        messagesReactionsList.peer = getMessagesController().getInputPeer(-chatId);
-        messagesReactionsList.id = (int) chatId;
-        TLRPC.ChatFull chatFull = getMessagesController().getChatFull(chatId);
-        getConnectionsManager().sendRequest(messagesReactionsList, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
-            if (response != null) {
-                int tu = response.networkType;
-            }
-            if (error != null) {
-                int str = error.code;
-            }
-            int a = 5;
-            int b = a + 5;
-            Log.i("telegramTest", "response = " + (response != null) + " ; error: " + (error != null ? error.text : "null"));
-        }));
-
-        TLRPC.TL_messages_getMessagesReactions messagesReactions = new TLRPC.TL_messages_getMessagesReactions();
-        messagesReactions.peer = getMessagesController().getInputPeer(chatId);
-        getConnectionsManager().sendRequest(messagesReactions, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
-            if (response != null) {
-                TLRPC.TL_updates updates = (TLRPC.TL_updates) response;
-                updates.chats.get(0).serializeToStream()
-                int tu = response.networkType;
-            }
-            if (error != null) {
-                int str = error.code;
-            }
-            int a = 5;
-            int b = a + 5;
-            Log.i("telegramTest", "response gmr = " + (response != null) + " ; error: " + (error != null ? error.text : "null"));
-        }));
-
-
-
-        TLRPC.TL_updateMessageReactions updateMessageReactions = new TLRPC.TL_updateMessageReactions();
-        updateMessageReactions.peer = getMessagesController().getPeer(-chatId);
-        getConnectionsManager().sendRequest(updateMessageReactions, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
-            if (response != null) {
-                int tu = response.networkType;
-            }
-            if (error != null) {
-                int str = error.code;
-            }
-            int a = 5;
-            int b = a + 5;
-        }));
-
         if (membersCell != null) {
             if (info != null) {
                 if (memberRequestsCell != null) {
@@ -1459,7 +1413,7 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
                     memberRequestsCell.setVisibility(info.requests_pending > 0 ? View.VISIBLE : View.GONE);
                 }
                 if (isChannel) {
-                    reactionsCell.setTextAndValueAndIcon("Reactions", "0/11", R.drawable.actions_reactions, true);
+                    reactionsCell.setTextAndValueAndIcon("Reactions", getAvailableReactions(), R.drawable.actions_reactions, true);
                     membersCell.setTextAndValueAndIcon(LocaleController.getString("ChannelSubscribers", R.string.ChannelSubscribers), String.format("%d", info.participants_count), R.drawable.actions_viewmembers, true);
                     blockCell.setTextAndValueAndIcon(LocaleController.getString("ChannelBlacklist", R.string.ChannelBlacklist), String.format("%d", Math.max(info.banned_count, info.kicked_count)), R.drawable.actions_removed, logCell != null && logCell.getVisibility() == View.VISIBLE);
                 } else {
@@ -1469,7 +1423,7 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
                         membersCell.setTextAndValueAndIcon(LocaleController.getString("ChannelMembers", R.string.ChannelMembers), String.format("%d", info.participants.participants.size()), R.drawable.actions_viewmembers, memberRequestsCell.getVisibility() == View.VISIBLE);
                     }
                     if (currentChat.gigagroup) {
-                        reactionsCell.setTextAndValueAndIcon("Reactions", "0/11", R.drawable.actions_reactions, true);
+                        reactionsCell.setTextAndValueAndIcon("Reactions", getAvailableReactions(), R.drawable.actions_reactions, true);
                         blockCell.setTextAndValueAndIcon(LocaleController.getString("ChannelBlacklist", R.string.ChannelBlacklist), String.format("%d", Math.max(info.banned_count, info.kicked_count)), R.drawable.actions_removed, logCell != null && logCell.getVisibility() == View.VISIBLE);
                     } else {
                         int count = 0;
@@ -1501,7 +1455,7 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
                         } else {
                             count = 8;
                         }
-                        reactionsCell.setTextAndValueAndIcon("Reactions", "0/11", R.drawable.actions_reactions, true);
+                        reactionsCell.setTextAndValueAndIcon("Reactions", getAvailableReactions(), R.drawable.actions_reactions, true);
                         blockCell.setTextAndValueAndIcon(LocaleController.getString("ChannelPermissions", R.string.ChannelPermissions), String.format("%d/%d", count, 8), R.drawable.actions_permissions, true);
                     }
                     if (memberRequestsCell != null) {
@@ -1511,16 +1465,16 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
                 adminCell.setTextAndValueAndIcon(LocaleController.getString("ChannelAdministrators", R.string.ChannelAdministrators), String.format("%d", ChatObject.isChannel(currentChat) ? info.admins_count : getAdminCount()), R.drawable.actions_addadmin, true);
             } else {
                 if (isChannel) {
-                    reactionsCell.setTextAndValueAndIcon("Reactions", "0/11", R.drawable.actions_reactions, true);
+                    reactionsCell.setTextAndValueAndIcon("Reactions", getAvailableReactions(), R.drawable.actions_reactions, true);
                     membersCell.setTextAndIcon(LocaleController.getString("ChannelSubscribers", R.string.ChannelSubscribers), R.drawable.actions_viewmembers, true);
                     blockCell.setTextAndIcon(LocaleController.getString("ChannelBlacklist", R.string.ChannelBlacklist), R.drawable.actions_removed, logCell != null && logCell.getVisibility() == View.VISIBLE);
                 } else {
                     membersCell.setTextAndIcon(LocaleController.getString("ChannelMembers", R.string.ChannelMembers), R.drawable.actions_viewmembers, logCell != null && logCell.getVisibility() == View.VISIBLE);
                     if (currentChat.gigagroup) {
-                        reactionsCell.setTextAndValueAndIcon("Reactions", "0/11", R.drawable.actions_reactions, true);
+                        reactionsCell.setTextAndValueAndIcon("Reactions", getAvailableReactions(), R.drawable.actions_reactions, true);
                         blockCell.setTextAndIcon(LocaleController.getString("ChannelBlacklist", R.string.ChannelBlacklist), R.drawable.actions_removed, logCell != null && logCell.getVisibility() == View.VISIBLE);
                     } else {
-                        reactionsCell.setTextAndValueAndIcon("Reactions", "0/11", R.drawable.actions_reactions, true);
+                        reactionsCell.setTextAndValueAndIcon("Reactions", getAvailableReactions(), R.drawable.actions_reactions, true);
                         blockCell.setTextAndIcon(LocaleController.getString("ChannelPermissions", R.string.ChannelPermissions), R.drawable.actions_permissions, true);
                     }
                 }
