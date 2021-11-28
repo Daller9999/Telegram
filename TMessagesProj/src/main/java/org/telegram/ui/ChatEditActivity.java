@@ -25,6 +25,7 @@ import android.text.InputFilter;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -1384,6 +1385,53 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
                 stickersCell.setText(LocaleController.getString("GroupStickers", R.string.GroupStickers), false);
             }
         }
+
+        TLRPC.ChatFull
+
+        TLRPC.TL_messages_getMessageReactionsList messagesReactionsList = new TLRPC.TL_messages_getMessageReactionsList();
+        messagesReactionsList.peer = getMessagesController().getInputPeer(-chatId);
+        messagesReactionsList.id = (int) chatId;
+        TLRPC.ChatFull chatFull = getMessagesController().getChatFull(chatId);
+        getConnectionsManager().sendRequest(messagesReactionsList, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
+            if (response != null) {
+                int tu = response.networkType;
+            }
+            if (error != null) {
+                int str = error.code;
+            }
+            int a = 5;
+            int b = a + 5;
+            Log.i("telegramTest", "response = " + (response != null) + " ; error: " + (error != null ? error.text : "null"));
+        }));
+
+        TLRPC.TL_messages_getMessagesReactions messagesReactions = new TLRPC.TL_messages_getMessagesReactions();
+        messagesReactions.peer = getMessagesController().getInputPeer(chatId);
+        getConnectionsManager().sendRequest(messagesReactions, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
+            if (response != null) {
+                int tu = response.networkType;
+            }
+            if (error != null) {
+                int str = error.code;
+            }
+            int a = 5;
+            int b = a + 5;
+            Log.i("telegramTest", "response = " + (response != null) + " ; error: " + (error != null ? error.text : "null"));
+        }));
+
+
+
+        TLRPC.TL_updateMessageReactions updateMessageReactions = new TLRPC.TL_updateMessageReactions();
+        updateMessageReactions.peer = getMessagesController().getPeer(-chatId);
+        getConnectionsManager().sendRequest(updateMessageReactions, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
+            if (response != null) {
+                int tu = response.networkType;
+            }
+            if (error != null) {
+                int str = error.code;
+            }
+            int a = 5;
+            int b = a + 5;
+        }));
 
         if (membersCell != null) {
             if (info != null) {
