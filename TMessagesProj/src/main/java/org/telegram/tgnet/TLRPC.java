@@ -17,6 +17,7 @@ import com.google.android.exoplayer2.util.Log;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.ImageLoader;
 import org.telegram.messenger.Utilities;
+import org.telegram.ui.PhotoViewer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
