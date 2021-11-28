@@ -1386,6 +1386,20 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
             }
         }
 
+        TLRPC.TL_messageReactions messageReactions = new TLRPC.TL_messageReactions();
+        getConnectionsManager().sendRequest(messageReactions, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
+            if (response != null) {
+                int tu = response.networkType;
+            }
+            if (error != null) {
+                int str = error.code;
+            }
+            int a = 5;
+            int b = a + 5;
+            Log.i("telegramTest", "response mr = " + (response != null) + " ; error: " + (error != null ? error.text : "null"));
+        }));
+
+
         TLRPC.ChatFull
 
         TLRPC.TL_messages_getMessageReactionsList messagesReactionsList = new TLRPC.TL_messages_getMessageReactionsList();
@@ -1408,6 +1422,8 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
         messagesReactions.peer = getMessagesController().getInputPeer(chatId);
         getConnectionsManager().sendRequest(messagesReactions, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
             if (response != null) {
+                TLRPC.TL_updates updates = (TLRPC.TL_updates) response;
+                updates.chats.get(0).serializeToStream()
                 int tu = response.networkType;
             }
             if (error != null) {
@@ -1415,7 +1431,7 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
             }
             int a = 5;
             int b = a + 5;
-            Log.i("telegramTest", "response = " + (response != null) + " ; error: " + (error != null ? error.text : "null"));
+            Log.i("telegramTest", "response gmr = " + (response != null) + " ; error: " + (error != null ? error.text : "null"));
         }));
 
 
