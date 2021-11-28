@@ -878,7 +878,7 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
         if (!isChannel && !currentChat.gigagroup) {
             infoContainer.addView(blockCell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
         }
-        if (isChannel || currentChat.gigagroup || currentChat.participants_count > 2) {
+        if (ChatObject.isChannelOrGiga(currentChat) || ChatObject.isChannel(currentChat) || currentChat.participants_count > 2) {
             infoContainer.addView(reactionsCell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
         }
         if (!isChannel) {
