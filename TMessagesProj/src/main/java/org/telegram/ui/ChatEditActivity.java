@@ -115,6 +115,7 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
     private TextCell inviteLinksCell;
     private TextCell adminCell;
     private TextCell blockCell;
+    private TextCell reactionsCell;
     private TextCell logCell;
     private TextCell setAvatarCell;
     private ShadowSectionCell infoSectionCell;
@@ -792,8 +793,20 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
 
         blockCell = new TextCell(context);
         blockCell.setBackgroundDrawable(Theme.getSelectorDrawable(false));
-        blockCell.setVisibility(ChatObject.isChannel(currentChat) || currentChat.creator || ChatObject.hasAdminRights(currentChat) && ChatObject.canChangeChatInfo(currentChat) ? View.VISIBLE : View.GONE);
+        blockCell.setVisibility(ChatObject.isChannel(currentChat) || currentChat.gigagroup || currentChat.creator || ChatObject.hasAdminRights(currentChat) && ChatObject.canChangeChatInfo(currentChat) ? View.VISIBLE : View.GONE);
         blockCell.setOnClickListener(v -> {
+            Bundle args = new Bundle();
+            args.putLong("chat_id", chatId);
+            args.putInt("type", !isChannel && !currentChat.gigagroup ? ChatUsersActivity.TYPE_KICKED : ChatUsersActivity.TYPE_BANNED);
+            ChatUsersActivity fragment = new ChatUsersActivity(args);
+            fragment.setInfo(info);
+            presentFragment(fragment);
+        });
+
+        reactionsCell = new TextCell(context);
+        reactionsCell.setBackgroundDrawable(Theme.getSelectorDrawable(false));
+        reactionsCell.setVisibility(ChatObject.isChannel(currentChat) || currentChat.creator || currentChat.participants_count > 2 || ChatObject.hasAdminRights(currentChat) && ChatObject.canChangeChatInfo(currentChat) ? View.VISIBLE : View.GONE);
+        reactionsCell.setOnClickListener(v -> {
             Bundle args = new Bundle();
             args.putLong("chat_id", chatId);
             args.putInt("type", !isChannel && !currentChat.gigagroup ? ChatUsersActivity.TYPE_KICKED : ChatUsersActivity.TYPE_BANNED);
@@ -850,6 +863,9 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
 
         if (!isChannel && !currentChat.gigagroup) {
             infoContainer.addView(blockCell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+        }
+        if (isChannel || currentChat.gigagroup || currentChat.participants_count > 2) {
+            infoContainer.addView(reactionsCell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
         }
         if (!isChannel) {
             infoContainer.addView(inviteLinksCell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
@@ -1379,6 +1395,7 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
                     memberRequestsCell.setVisibility(info.requests_pending > 0 ? View.VISIBLE : View.GONE);
                 }
                 if (isChannel) {
+                    reactionsCell.setTextAndValueAndIcon("Reactions", "0/11", R.drawable.actions_reactions, true);
                     membersCell.setTextAndValueAndIcon(LocaleController.getString("ChannelSubscribers", R.string.ChannelSubscribers), String.format("%d", info.participants_count), R.drawable.actions_viewmembers, true);
                     blockCell.setTextAndValueAndIcon(LocaleController.getString("ChannelBlacklist", R.string.ChannelBlacklist), String.format("%d", Math.max(info.banned_count, info.kicked_count)), R.drawable.actions_removed, logCell != null && logCell.getVisibility() == View.VISIBLE);
                 } else {
@@ -1388,6 +1405,7 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
                         membersCell.setTextAndValueAndIcon(LocaleController.getString("ChannelMembers", R.string.ChannelMembers), String.format("%d", info.participants.participants.size()), R.drawable.actions_viewmembers, memberRequestsCell.getVisibility() == View.VISIBLE);
                     }
                     if (currentChat.gigagroup) {
+                        reactionsCell.setTextAndValueAndIcon("Reactions", "0/11", R.drawable.actions_reactions, true);
                         blockCell.setTextAndValueAndIcon(LocaleController.getString("ChannelBlacklist", R.string.ChannelBlacklist), String.format("%d", Math.max(info.banned_count, info.kicked_count)), R.drawable.actions_removed, logCell != null && logCell.getVisibility() == View.VISIBLE);
                     } else {
                         int count = 0;
@@ -1419,6 +1437,7 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
                         } else {
                             count = 8;
                         }
+                        reactionsCell.setTextAndValueAndIcon("Reactions", "0/11", R.drawable.actions_reactions, true);
                         blockCell.setTextAndValueAndIcon(LocaleController.getString("ChannelPermissions", R.string.ChannelPermissions), String.format("%d/%d", count, 8), R.drawable.actions_permissions, true);
                     }
                     if (memberRequestsCell != null) {
@@ -1428,13 +1447,16 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
                 adminCell.setTextAndValueAndIcon(LocaleController.getString("ChannelAdministrators", R.string.ChannelAdministrators), String.format("%d", ChatObject.isChannel(currentChat) ? info.admins_count : getAdminCount()), R.drawable.actions_addadmin, true);
             } else {
                 if (isChannel) {
+                    reactionsCell.setTextAndValueAndIcon("Reactions", "0/11", R.drawable.actions_reactions, true);
                     membersCell.setTextAndIcon(LocaleController.getString("ChannelSubscribers", R.string.ChannelSubscribers), R.drawable.actions_viewmembers, true);
                     blockCell.setTextAndIcon(LocaleController.getString("ChannelBlacklist", R.string.ChannelBlacklist), R.drawable.actions_removed, logCell != null && logCell.getVisibility() == View.VISIBLE);
                 } else {
                     membersCell.setTextAndIcon(LocaleController.getString("ChannelMembers", R.string.ChannelMembers), R.drawable.actions_viewmembers, logCell != null && logCell.getVisibility() == View.VISIBLE);
                     if (currentChat.gigagroup) {
+                        reactionsCell.setTextAndValueAndIcon("Reactions", "0/11", R.drawable.actions_reactions, true);
                         blockCell.setTextAndIcon(LocaleController.getString("ChannelBlacklist", R.string.ChannelBlacklist), R.drawable.actions_removed, logCell != null && logCell.getVisibility() == View.VISIBLE);
                     } else {
+                        reactionsCell.setTextAndValueAndIcon("Reactions", "0/11", R.drawable.actions_reactions, true);
                         blockCell.setTextAndIcon(LocaleController.getString("ChannelPermissions", R.string.ChannelPermissions), R.drawable.actions_permissions, true);
                     }
                 }
