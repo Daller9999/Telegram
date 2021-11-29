@@ -267,11 +267,6 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
     @Override
     public void onResume() {
         super.onResume();
-        if (isNeedToUploadChatInfo) {
-            isNeedToUploadChatInfo = false;
-            info = MessagesStorage.getInstance(currentAccount).loadChatInfo(chatId, ChatObject.isChannel(currentChat), new CountDownLatch(1), false, false);
-            Log.i("telegramTest", "available count is " + info.available_reactions.size());
-        }
         if (nameTextView != null) {
             nameTextView.onResume();
             nameTextView.getEditText().requestFocus();
@@ -327,7 +322,6 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
         return checkDiscard();
     }
 
-    private boolean isNeedToUploadChatInfo = false;
     @Override
     public View createView(Context context) {
         if (nameTextView != null) {
@@ -827,13 +821,9 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
         reactionsCell.setBackgroundDrawable(Theme.getSelectorDrawable(false));
         reactionsCell.setVisibility(ChatObject.isChannel(currentChat) || currentChat.creator || currentChat.participants_count > 2 || ChatObject.hasAdminRights(currentChat) && ChatObject.canChangeChatInfo(currentChat) ? View.VISIBLE : View.GONE);
         reactionsCell.setOnClickListener(v -> {
-            Bundle args = new Bundle();
-            args.putLong("chat_id", chatId);
-            args.putInt("type", !isChannel && !currentChat.gigagroup ? ChatUsersActivity.TYPE_KICKED : ChatUsersActivity.TYPE_BANNED);
-            ChatReactionEditActivity fragment = new ChatReactionEditActivity(args);
+            ChatReactionEditActivity fragment = new ChatReactionEditActivity(chatFull -> this.info = chatFull);
             fragment.setInfo(info);
             presentFragment(fragment);
-            isNeedToUploadChatInfo = true;
         });
 
         inviteLinksCell = new TextCell(context);

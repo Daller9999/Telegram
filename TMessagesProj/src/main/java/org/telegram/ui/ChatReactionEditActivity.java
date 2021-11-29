@@ -41,9 +41,15 @@ import java.util.HashSet;
 
 public class ChatReactionEditActivity extends BaseFragment {
 
-    public ChatReactionEditActivity(Bundle bundle) {
+    public interface OnChatUpdate {
+        void onUpdateChat(TLRPC.ChatFull chatFull);
     }
 
+    public ChatReactionEditActivity(OnChatUpdate onChatUpdate) {
+        this.onChatUpdate = onChatUpdate;
+    }
+
+    private OnChatUpdate onChatUpdate;
     private TLRPC.ChatFull chatFull;
     private TextCheckCell textCheckCellEnableReaction;
     private TextView textViewAvailableReactions;
@@ -209,7 +215,6 @@ public class ChatReactionEditActivity extends BaseFragment {
     private void onClick(View view) {
         TextCheckCell textCheckCell = (TextCheckCell) view;
         textCheckCell.setChecked(!textCheckCell.isChecked());
-        uploadAvailableReaction();
     }
 
     @Override
