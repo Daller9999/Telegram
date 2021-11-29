@@ -1697,8 +1697,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     }
 
     private void uploadAvailableReactions() {
-        if (chatInfo == null || chatInfo.available_reactions.isEmpty()) return;
-
         TLRPC.TL_messages_getAvailableReactions messagesGetAvailableReactions = new TLRPC.TL_messages_getAvailableReactions();
         getConnectionsManager().sendRequest(messagesGetAvailableReactions, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
             if (response == null) return;
@@ -1706,7 +1704,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             availableReactions.clear();
             TLRPC.TL_messages_availableReactions availableReactions = (TLRPC.TL_messages_availableReactions) response;
             for (TLRPC.TL_availableReaction reaction : availableReactions.reactions) {
-                if (chatInfo.available_reactions.contains(reaction.reaction)) {
+                if (chatInfo != null && chatInfo.available_reactions.contains(reaction.reaction)) {
+                    this.availableReactions.add(reaction);
+                } else if (chatInfo == null) {
                     this.availableReactions.add(reaction);
                 }
             }
