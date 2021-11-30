@@ -53,6 +53,7 @@ import android.text.style.URLSpan;
 import android.util.Property;
 import android.util.SparseArray;
 import android.util.StateSet;
+import android.view.Gravity;
 import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.SoundEffectConstants;
@@ -113,6 +114,7 @@ import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.EmptyStubSpan;
 import org.telegram.ui.Components.FloatSeekBarAccessibilityDelegate;
 import org.telegram.ui.Components.InfiniteProgress;
+import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.LinkPath;
 import org.telegram.ui.Components.MediaActionDrawable;
 import org.telegram.ui.Components.MessageBackgroundDrawable;
@@ -826,6 +828,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private float lastDrawingAudioProgress;
     private int currentFocusedVirtualView = -1;
     public boolean drawFromPinchToZoom;
+
 
     private Theme.MessageDrawable.PathDrawParams backgroundCacheParams = new Theme.MessageDrawable.PathDrawParams();
 
@@ -3059,6 +3062,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         if (messageObject.checkLayout() || currentPosition != null && lastHeight != AndroidUtilities.displaySize.y) {
             currentMessageObject = null;
         }
+
         boolean widthChanged = lastWidth != getParentWidth();
         lastHeight = AndroidUtilities.displaySize.y;
         lastWidth = getParentWidth();
@@ -6110,6 +6114,14 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
         accessibilityVirtualViewBounds.clear();
         transitionParams.updatePhotoImageX = true;
+
+        View view = new View(getContext());
+        ViewGroup.MarginLayoutParams params = new ViewGroup.MarginLayoutParams(AndroidUtilities.dp(20), AndroidUtilities.dp(20));
+        params.bottomMargin = AndroidUtilities.dp(10);
+        params.rightMargin = AndroidUtilities.dp(10);
+        view.setLayoutParams(params);
+        view.setBackgroundColor(Color.RED);
+        addView(view);
     }
 
     public void checkVideoPlayback(boolean allowStart, Bitmap thumb) {

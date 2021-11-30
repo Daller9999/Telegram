@@ -19988,6 +19988,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         -15f
                 ));
                 reactionView.setReactions(availableReactions);
+                reactionView.setOnReactionCallBack(reaction -> {
+                    getSendMessagesHelper().sendReaction(message, reaction, this);
+                    scrimPopupWindow.dismiss();
+                });
             }
 
             scrimPopupWindowItems = new ActionBarMenuSubItem[items.size() + (selectedObject.isSponsored() ? 1 : 0)];

@@ -23,12 +23,17 @@ import java.util.ArrayList;
 
 public class ReactionView extends FrameLayout {
 
+
+    public interface OnReactionCallBack {
+        void onReactionClicked(String reaction);
+    }
+
     private Theme.ResourcesProvider resourcesProvider;
-    private HorizontalScrollView horizontalScrollView = new HorizontalScrollView(getContext());
-    private LinearLayout layoutReactions = new LinearLayout(getContext());
+    private final HorizontalScrollView horizontalScrollView = new HorizontalScrollView(getContext());
+    private final LinearLayout layoutReactions = new LinearLayout(getContext());
     private View viewBack;
     private View viewBackShadow;
-    private int smallBottomShadow = 2;
+    private OnReactionCallBack onReactionCallBack;
 
     public ReactionView(@NonNull Context context, Theme.ResourcesProvider resourcesProvider) {
         super(context);
@@ -50,6 +55,10 @@ public class ReactionView extends FrameLayout {
     public ReactionView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         init();
+    }
+
+    public void setOnReactionCallBack(OnReactionCallBack onReactionCallBack) {
+        this.onReactionCallBack = onReactionCallBack;
     }
 
     @Override
@@ -110,6 +119,11 @@ public class ReactionView extends FrameLayout {
                     null,
                     layoutReactions
             );
+            imageView.setOnClickListener(v -> {
+                if (onReactionCallBack != null) {
+                    onReactionCallBack.onReactionClicked(reaction.reaction);
+                }
+            });
             imageView.setLayoutParams(LayoutHelper.createFrame(30, 30, Gravity.LEFT | Gravity.TOP, 5f, 5f, 0f, 0f));
             layoutReactions.addView(imageView);
         }
