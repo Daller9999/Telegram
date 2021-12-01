@@ -99,6 +99,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.android.exoplayer2.util.Log;
+import com.google.android.gms.vision.Frame;
 
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.AccountInstance;
@@ -139,6 +140,7 @@ import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
+import org.telegram.ui.ActionBar.ActionBarFullReactionsInfo;
 import org.telegram.ui.ActionBar.ActionBarLayout;
 import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
@@ -19975,9 +19977,14 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             shadowDrawable.getPadding(backgroundPaddings);
             popupLayout.setBackgroundColor(getThemedColor(Theme.key_actionBarDefaultSubmenuBackground));
 
+
+            FrameLayout scrimPopupFrameLayout = new FrameLayout(getParentActivity());
+            ActionBarFullReactionsInfo actionBarFullReactionsInfo = new ActionBarFullReactionsInfo(getParentActivity(), scrimPopupWindow);
             if (availableReactions.isEmpty()) {
                 reactionView = null;
             } else {
+                actionBarFullReactionsInfo.setVisibility(View.GONE);
+
                 reactionView = new ReactionView(popupLayout.getContext(), themeDelegate);
                 reactionView.setLayoutParams(LayoutHelper.createFrame(
                         300,
@@ -19993,8 +20000,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     getSendMessagesHelper().sendReaction(message, reaction, this);
                     scrimPopupWindow.dismiss();
                 });
-            }
-            if (reactionView != null) {
+
                 ActionBarReactionsItem actionBarReactionsItem = new ActionBarReactionsItem(getParentActivity(), themeDelegate);
                 actionBarReactionsItem.setTextAndIcon("Reactions", R.drawable.actions_reactions);
                 actionBarReactionsItem.setItemHeight(56);
@@ -20005,6 +20011,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 view.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 10));
                 view.setBackgroundColor(getThemedColor(Theme.key_dialogBackgroundGray));
                 popupLayout.addView(view);
+
+                actionBarReactionsItem.setOnClickListener(rv -> actionBarFullReactionsInfo.setVisibility(View.VISIBLE));
             }
 
             scrimPopupWindowItems = new ActionBarMenuSubItem[items.size() + (selectedObject.isSponsored() ? 1 : 0)];
@@ -20282,7 +20290,21 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     reactionView == null ? 0 : 30,
                     0
             ));
-            scrimPopupWindow = new ActionBarPopupWindow(scrimPopupContainerLayout, LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT) {
+            scrimPopupFrameLayout.addView(scrimPopupContainerLayout);
+
+            actionBarFullReactionsInfo.setLayoutParams(LayoutHelper.createFrame(
+                    LayoutHelper.MATCH_PARENT,
+                    LayoutHelper.MATCH_PARENT,
+                    Gravity.CENTER,
+                    15,
+                    65,
+                    30,
+                    25
+            ));
+            scrimPopupFrameLayout.addView(actionBarFullReactionsInfo);
+
+            scrimPopupFrameLayout.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
+            scrimPopupWindow = new ActionBarPopupWindow(scrimPopupFrameLayout, LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT) {
                 @Override
                 public void dismiss() {
                     super.dismiss();
@@ -20335,6 +20357,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             scrimPopupWindow.setClippingEnabled(true);
             scrimPopupWindow.setAnimationStyle(R.style.PopupContextAnimation);
             scrimPopupWindow.setFocusable(true);
+            actionBarFullReactionsInfo.measure(View.MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(1000), View.MeasureSpec.AT_MOST), View.MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(1000), View.MeasureSpec.AT_MOST));
             scrimPopupContainerLayout.measure(View.MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(1000), View.MeasureSpec.AT_MOST), View.MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(1000), View.MeasureSpec.AT_MOST));
             scrimPopupWindow.setInputMethodMode(ActionBarPopupWindow.INPUT_METHOD_NOT_NEEDED);
             scrimPopupWindow.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED);
