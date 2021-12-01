@@ -19977,9 +19977,20 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             shadowDrawable.getPadding(backgroundPaddings);
             popupLayout.setBackgroundColor(getThemedColor(Theme.key_actionBarDefaultSubmenuBackground));
 
+            LinearLayout scrimPopupContainerLayout = new LinearLayout(contentView.getContext()) {
+                @Override
+                public boolean dispatchKeyEvent(KeyEvent event) {
+                    if (event.getKeyCode() == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0 && scrimPopupWindow != null && scrimPopupWindow.isShowing()) {
+                        scrimPopupWindow.dismiss();
+                    }
+                    return super.dispatchKeyEvent(event);
+                }
+            };
 
             FrameLayout scrimPopupFrameLayout = new FrameLayout(getParentActivity());
-            ActionBarFullReactionsInfo actionBarFullReactionsInfo = new ActionBarFullReactionsInfo(getParentActivity(), scrimPopupWindow);
+            ActionBarFullReactionsInfo actionBarFullReactionsInfo = new ActionBarFullReactionsInfo(getParentActivity(), scrimPopupWindow, () -> {
+                scrimPopupContainerLayout.setVisibility(View.VISIBLE);
+            });
             if (availableReactions.isEmpty()) {
                 reactionView = null;
             } else {
@@ -20012,7 +20023,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 view.setBackgroundColor(getThemedColor(Theme.key_dialogBackgroundGray));
                 popupLayout.addView(view);
 
-                actionBarReactionsItem.setOnClickListener(rv -> actionBarFullReactionsInfo.setVisibility(View.VISIBLE));
+                actionBarReactionsItem.setOnClickListener(rv -> {
+                    scrimPopupContainerLayout.setVisibility(View.GONE);
+                    actionBarFullReactionsInfo.setVisibility(View.VISIBLE);
+                });
             }
 
             scrimPopupWindowItems = new ActionBarMenuSubItem[items.size() + (selectedObject.isSponsored() ? 1 : 0)];
@@ -20072,16 +20086,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                 });
             }
-
-            LinearLayout scrimPopupContainerLayout = new LinearLayout(contentView.getContext()) {
-                @Override
-                public boolean dispatchKeyEvent(KeyEvent event) {
-                    if (event.getKeyCode() == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0 && scrimPopupWindow != null && scrimPopupWindow.isShowing()) {
-                        scrimPopupWindow.dismiss();
-                    }
-                    return super.dispatchKeyEvent(event);
-                }
-            };
             if (reactionView != null) {
                 scrimPopupContainerLayout.addView(reactionView);
             }
@@ -20293,8 +20297,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             scrimPopupFrameLayout.addView(scrimPopupContainerLayout);
 
             actionBarFullReactionsInfo.setLayoutParams(LayoutHelper.createFrame(
-                    LayoutHelper.MATCH_PARENT,
-                    LayoutHelper.MATCH_PARENT,
+                    250,
+                    300,
                     Gravity.CENTER,
                     15,
                     65,

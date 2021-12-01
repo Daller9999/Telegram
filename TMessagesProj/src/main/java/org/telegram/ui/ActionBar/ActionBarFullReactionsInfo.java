@@ -24,15 +24,17 @@ import org.telegram.ui.Components.SizeNotifierFrameLayout;
 public class ActionBarFullReactionsInfo extends FrameLayout {
 
     private ActionBarPopupWindow actionBar;
+    private OnButtonBack onButtonBack;
 
     public interface OnButtonBack {
         void onBackPressed();
     }
 
-    public ActionBarFullReactionsInfo(@NonNull Context context, ActionBarPopupWindow actionBar) {
+    public ActionBarFullReactionsInfo(@NonNull Context context, ActionBarPopupWindow actionBar, OnButtonBack onButtonBack) {
         super(context);
         init();
         this.actionBar = actionBar;
+        this.onButtonBack = onButtonBack;
     }
 
     public ActionBarFullReactionsInfo(@NonNull Context context, @Nullable AttributeSet attrs) {
@@ -68,7 +70,12 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
                 0
         ));
         addView(buttonBack);
-        buttonBack.setOnClickListener(v -> setVisibility(View.GONE));
+        buttonBack.setOnClickListener(v -> {
+            setVisibility(View.GONE);
+            if (onButtonBack != null) {
+                onButtonBack.onBackPressed();
+            }
+        });
     }
 
 
