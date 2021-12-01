@@ -998,6 +998,10 @@ public class MessageObject {
         }
     }
 
+    public TLRPC.TL_messageReactions getReactions() {
+        return messageOwner.reactions;
+    }
+
     private void createPathThumb() {
         TLRPC.Document document = getDocument();
         if (document == null) {

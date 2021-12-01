@@ -33,6 +33,8 @@ public class ReactionView extends FrameLayout {
     private final LinearLayout layoutReactions = new LinearLayout(getContext());
     private View viewBack;
     private View viewBackShadow;
+    private final int defaultHeight = 55;
+    private final int defaultReactionSize = 35;
     private OnReactionCallBack onReactionCallBack;
 
     public ReactionView(@NonNull Context context, Theme.ResourcesProvider resourcesProvider) {
@@ -68,47 +70,45 @@ public class ReactionView extends FrameLayout {
 
     public void setReactions(ArrayList<TLRPC.TL_availableReaction> reactions) {
         layoutReactions.removeAllViews();
-        if (reactions.size() < 7) {
-            int widthBack;
-            int widthHorizontal;
-            if (reactions.size() == 1) {
-                widthBack = 70;
-                widthHorizontal = 45;
-            } else if (reactions.size() == 2) {
-                widthBack = 100;
-                widthHorizontal = 80;
-            } else {
-                widthBack = (int) (39 * reactions.size());
-                widthHorizontal = (int) (35.5 * reactions.size());
-            }
-            viewBack.setLayoutParams(LayoutHelper.createFrame(
-                    widthBack - 2,
-                    50 - 2,
-                    Gravity.BOTTOM | Gravity.RIGHT,
-                    2,
-                    2,
-                    1,
-                    22
-            ));
-            viewBackShadow.setLayoutParams(LayoutHelper.createFrame(
-                    widthBack,
-                    50,
-                    Gravity.BOTTOM | Gravity.RIGHT,
-                    0,
-                    0,
-                    0,
-                    20
-            ));
-            horizontalScrollView.setLayoutParams(LayoutHelper.createFrame(
-                    widthHorizontal,
-                    50,
-                    Gravity.BOTTOM | Gravity.TOP | Gravity.RIGHT,
-                    10,
-                    23,
-                    10,
-                    22
-            ));
+        int widthBack;
+        int widthHorizontal;
+        if (reactions.size() == 1) {
+            widthBack = 70;
+            widthHorizontal = 45;
+        } else if (reactions.size() == 2) {
+            widthBack = 100;
+            widthHorizontal = 80;
+        } else {
+            widthBack = (int) (43 * 7);
+            widthHorizontal = (int) (40 * 7);
         }
+        viewBack.setLayoutParams(LayoutHelper.createFrame(
+                widthBack - 2,
+                defaultHeight - 2,
+                Gravity.BOTTOM | Gravity.RIGHT,
+                2,
+                2,
+                1,
+                22
+        ));
+        viewBackShadow.setLayoutParams(LayoutHelper.createFrame(
+                widthBack,
+                defaultHeight,
+                Gravity.BOTTOM | Gravity.RIGHT,
+                0,
+                0,
+                0,
+                20
+        ));
+        horizontalScrollView.setLayoutParams(LayoutHelper.createFrame(
+                widthHorizontal,
+                defaultHeight,
+                Gravity.BOTTOM | Gravity.TOP | Gravity.RIGHT,
+                0,
+                23,
+                10,
+                22
+        ));
         BackupImageView imageView;
         for (TLRPC.TL_availableReaction reaction : reactions) {
             imageView = new BackupImageView(getContext());
@@ -124,7 +124,7 @@ public class ReactionView extends FrameLayout {
                     onReactionCallBack.onReactionClicked(reaction.reaction);
                 }
             });
-            imageView.setLayoutParams(LayoutHelper.createFrame(30, 30, Gravity.LEFT | Gravity.TOP, 5f, 5f, 0f, 0f));
+            imageView.setLayoutParams(LayoutHelper.createFrame(defaultReactionSize, defaultReactionSize, Gravity.LEFT | Gravity.TOP, 5f, 0f, 0f, 0f));
             layoutReactions.addView(imageView);
         }
     }
@@ -143,7 +143,7 @@ public class ReactionView extends FrameLayout {
 
         viewBackShadow = new View(getContext());
         viewBackShadow.setBackground(Theme.createRoundRectDrawable(90, colorShadow));
-        viewBackShadow.setLayoutParams(LayoutHelper.createFrame(262, 52, Gravity.BOTTOM, 0, 0, 0, 20));
+        viewBackShadow.setLayoutParams(LayoutHelper.createFrame(262, defaultHeight + 4, Gravity.BOTTOM, 0, 0, 0, 20));
         addView(viewBackShadow);
 
 
@@ -156,7 +156,7 @@ public class ReactionView extends FrameLayout {
         viewBack.setBackground(Theme.createRoundRectDrawable(90, Color.WHITE));
         viewBack.setLayoutParams(LayoutHelper.createFrame(
                 258,
-                48,
+                defaultHeight,
                 Gravity.BOTTOM | Gravity.RIGHT,
                 2,
                 2,
@@ -177,7 +177,7 @@ public class ReactionView extends FrameLayout {
                 10,
                 23,
                 10,
-                22
+                40
         ));
         horizontalScrollView.setHorizontalScrollBarEnabled(false);
         layoutReactions.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));

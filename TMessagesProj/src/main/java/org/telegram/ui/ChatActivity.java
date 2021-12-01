@@ -144,6 +144,7 @@ import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.ActionBarMenuSubItem;
 import org.telegram.ui.ActionBar.ActionBarPopupWindow;
+import org.telegram.ui.ActionBar.ActionBarReactionsItem;
 import org.telegram.ui.ActionBar.AdjustPanLayoutHelper;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BackDrawable;
@@ -19968,7 +19969,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             Rect rect = new Rect();
 
             ActionBarPopupWindow.ActionBarPopupWindowLayout popupLayout = new ActionBarPopupWindow.ActionBarPopupWindowLayout(getParentActivity(), R.drawable.popup_fixed_alert, themeDelegate);
-            popupLayout.setMinimumWidth(AndroidUtilities.dp(200));
+            popupLayout.setMinimumWidth(AndroidUtilities.dp(200 + (availableReactions.isEmpty() ? 0 : 30)));
             Rect backgroundPaddings = new Rect();
             Drawable shadowDrawable = getParentActivity().getResources().getDrawable(R.drawable.popup_fixed_alert).mutate();
             shadowDrawable.getPadding(backgroundPaddings);
@@ -19979,7 +19980,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             } else {
                 reactionView = new ReactionView(popupLayout.getContext(), themeDelegate);
                 reactionView.setLayoutParams(LayoutHelper.createFrame(
-                        260,
+                        300,
                         90,
                         Gravity.BOTTOM,
                         0f,
@@ -19992,6 +19993,18 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     getSendMessagesHelper().sendReaction(message, reaction, this);
                     scrimPopupWindow.dismiss();
                 });
+            }
+            if (reactionView != null) {
+                ActionBarReactionsItem actionBarReactionsItem = new ActionBarReactionsItem(getParentActivity(), themeDelegate);
+                actionBarReactionsItem.setTextAndIcon("Reactions", R.drawable.actions_reactions);
+                actionBarReactionsItem.setItemHeight(56);
+                actionBarReactionsItem.setMessage(message, this, dialog_id);
+                popupLayout.addView(actionBarReactionsItem);
+                View view = new View(getParentActivity());
+
+                view.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 10));
+                view.setBackgroundColor(getThemedColor(Theme.key_dialogBackgroundGray));
+                popupLayout.addView(view);
             }
 
             scrimPopupWindowItems = new ActionBarMenuSubItem[items.size() + (selectedObject.isSponsored() ? 1 : 0)];
@@ -20026,7 +20039,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     layoutParams.height = AndroidUtilities.dp(6);
                     gap.setLayoutParams(layoutParams);
                 }
-                ActionBarMenuSubItem cell = new ActionBarMenuSubItem(getParentActivity(), a == 0, a == N - 1, themeDelegate);
+                ActionBarMenuSubItem cell = new ActionBarMenuSubItem(getParentActivity(), a == 0 && reactionView == null, a == N - 1, themeDelegate);
                 cell.setMinimumWidth(AndroidUtilities.dp(200));
                 cell.setTextAndIcon(items.get(a), icons.get(a));
                 Integer option = options.get(a);
