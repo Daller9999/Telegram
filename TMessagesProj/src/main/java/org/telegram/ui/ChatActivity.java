@@ -19993,7 +19993,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 reactionView = null;
             } else {
                 actionBarFullReactionsInfo.setVisibility(View.GONE);
-                actionBarFullReactionsInfo.setMessage(message, this, dialog_id);
+                actionBarFullReactionsInfo.setMessage(message, this, dialog_id, availableReactions);
 
                 reactionView = new ReactionView(popupLayout.getContext(), themeDelegate);
                 reactionView.setLayoutParams(LayoutHelper.createFrame(

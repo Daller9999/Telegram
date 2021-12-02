@@ -36,12 +36,15 @@ import org.telegram.ui.Components.FilterTabsView;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.TableLayout;
 
+import java.util.ArrayList;
+
 public class ActionBarFullReactionsInfo extends FrameLayout {
 
     private OnButtonBack onButtonBack;
     private MessageObject message;
     private LinearLayout layoutReactions;
     private ViewPager viewPager;
+    private ArrayList<TLRPC.TL_availableReaction> availableReactions;
 
 
     public interface OnButtonBack {
@@ -87,29 +90,44 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
                 0
         ));
         addView(buttonBack);
-        buttonBack.setOnClickListener(v -> {
+
+        TextView textView = new TextView(getContext());
+        textView.setText("Back");
+        textView.setTextColor(Color.BLACK);
+        textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
+        textView.setLayoutParams(LayoutHelper.createFrame(
+                LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT,
+                Gravity.TOP | Gravity.LEFT,
+                45, 8, 0, 0
+        ));
+        addView(textView);
+
+        View viewBack = new View(getContext());
+        viewBack.setLayoutParams(LayoutHelper.createFrame(
+                LayoutHelper.MATCH_PARENT, 40,
+                Gravity.TOP | Gravity.LEFT,
+                0, 0, 0, 0
+        ));
+        viewBack.setOnClickListener(v -> {
             setVisibility(View.GONE);
             if (onButtonBack != null) {
                 onButtonBack.onBackPressed();
             }
         });
-
-        TextView textView = new TextView(getContext());
-        textView.setText("Back");
-        textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-        textView.setLayoutParams(LayoutHelper.createFrame(
-                LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT,
-                Gravity.TOP | Gravity.LEFT,
-                45, 5, 0, 0
-        ));
+        addView(viewBack);
 
         layoutReactions = new LinearLayout(getContext());
         layoutReactions.setOrientation(LinearLayout.HORIZONTAL);
-        layoutReactions.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 40));
+        layoutReactions.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 50));
         layoutReactions.setHorizontalScrollBarEnabled(false);
 
         HorizontalScrollView horizontalScrollView = new HorizontalScrollView(getContext());
-        horizontalScrollView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+        horizontalScrollView.setLayoutParams(LayoutHelper.createFrame(
+                LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT,
+                Gravity.TOP,
+                0, 50 , 0, 0
+        ));
+        horizontalScrollView.setHorizontalScrollBarEnabled(false);
         horizontalScrollView.addView(layoutReactions);
 
         addView(horizontalScrollView);
@@ -123,8 +141,14 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
         addView(viewPager);
     }
 
-    public void setMessage(MessageObject message, ChatActivity chatActivity, long chatId) {
+    public void setMessage(
+            MessageObject message,
+            ChatActivity chatActivity,
+            long chatId,
+            ArrayList<TLRPC.TL_availableReaction> availableReactions
+    ) {
         this.message = message;
+        this.availableReactions = availableReactions;
         TLRPC.TL_messageReactions reactions = message.getReactions();
 
         MessagesController messagesController = chatActivity.getMessagesController();
@@ -136,7 +160,7 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
         connectionsManager.sendRequest(getMessageReactionsList, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
             if (response != null) {
                 TLRPC.TL_messages_messageReactionsList list = (TLRPC.TL_messages_messageReactionsList) response;
-                updateList(list);
+                updateList(reactions);
                 Log.i("telegramTest", "response get reaction list success");
             }
             if (error != null) {
@@ -145,9 +169,25 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
         }));
     }
 
-    private void updateList(TLRPC.TL_messages_messageReactionsList list) {
-        for (TLRPC.TL_messageUserReaction userReaction : list.reactions) {
-
+    private void updateList(TLRPC.TL_messageReactions reactions) {
+        int i = 0;
+        for (TLRPC.TL_reactionCount reactionCount : reactions.results) {
+            ReactionView reactionView = new ReactionView(getContext());
+            for (TLRPC.TL_availableReaction availableReaction : availableReactions) {
+                if (reactionCount.reaction.equals(availableReaction.reaction)) {
+                    reactionView.setReaction(availableReaction, reactionCount.count);
+                }
+            }
+            reactionView.setLayoutParams(LayoutHelper.createLinear(
+                    60, 30,
+                    Gravity.RIGHT | Gravity.LEFT,
+                    i == 0 ? 20 : 5,
+                    0,
+                    i == reactions.results.size() - 1 ? 20 : 5,
+                    0
+            ));
+            layoutReactions.addView(reactionView);
+            i++;
         }
     }
 }
