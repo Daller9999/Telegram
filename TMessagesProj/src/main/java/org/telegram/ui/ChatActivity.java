@@ -98,8 +98,6 @@ import androidx.recyclerview.widget.LinearSmoothScrollerCustom;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
-import com.google.android.exoplayer2.util.Log;
-import com.google.android.gms.vision.Frame;
 
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.AccountInstance;
@@ -140,7 +138,7 @@ import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
-import org.telegram.ui.ActionBar.ActionBarFullReactionsInfo;
+import org.telegram.ui.ActionBar.ractionview.ActionBarFullReactionsInfo;
 import org.telegram.ui.ActionBar.ActionBarLayout;
 import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
@@ -19988,13 +19986,14 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             };
 
             FrameLayout scrimPopupFrameLayout = new FrameLayout(getParentActivity());
-            ActionBarFullReactionsInfo actionBarFullReactionsInfo = new ActionBarFullReactionsInfo(getParentActivity(), scrimPopupWindow, () -> {
+            ActionBarFullReactionsInfo actionBarFullReactionsInfo = new ActionBarFullReactionsInfo(getParentActivity(), () -> {
                 scrimPopupContainerLayout.setVisibility(View.VISIBLE);
             });
             if (availableReactions.isEmpty()) {
                 reactionView = null;
             } else {
                 actionBarFullReactionsInfo.setVisibility(View.GONE);
+                actionBarFullReactionsInfo.setMessage(message, this, dialog_id);
 
                 reactionView = new ReactionView(popupLayout.getContext(), themeDelegate);
                 reactionView.setLayoutParams(LayoutHelper.createFrame(
@@ -20367,6 +20366,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             scrimPopupWindow.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED);
             scrimPopupWindow.getContentView().setFocusableInTouchMode(true);
             popupLayout.setFitItems(true);
+
 
             if (messageSeenView != null) {
                 messageSeenView.getLayoutParams().width = scrimPopupContainerLayout.getMeasuredWidth() - AndroidUtilities.dp(16);
