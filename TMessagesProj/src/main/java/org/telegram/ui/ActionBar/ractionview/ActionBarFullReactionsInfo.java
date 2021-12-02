@@ -9,6 +9,7 @@ import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
@@ -19,15 +20,18 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
+import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.exoplayer2.util.Log;
 
+import org.checkerframework.checker.units.qual.A;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.tgnet.ConnectionsManager;
+import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Charts.data.ChartData;
@@ -45,7 +49,7 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
     private LinearLayout layoutReactions;
     private ViewPager viewPager;
     private ArrayList<TLRPC.TL_availableReaction> availableReactions;
-
+    private MessagesController messagesController;
 
     public interface OnButtonBack {
         void onBackPressed();
@@ -81,13 +85,9 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
         drawable.setColorFilter(Color.BLACK, PorterDuff.Mode.MULTIPLY);
         buttonBack.setBackground(drawable);
         buttonBack.setLayoutParams(LayoutHelper.createFrame(
-                30,
-                30,
+                30, 30,
                 Gravity.TOP | Gravity.LEFT,
-                5,
-                5,
-                0,
-                0
+                5, 5, 0, 0
         ));
         addView(buttonBack);
 
@@ -129,12 +129,20 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
         ));
         horizontalScrollView.setHorizontalScrollBarEnabled(false);
         horizontalScrollView.addView(layoutReactions);
-
         addView(horizontalScrollView);
+
+        View view = new View(getContext());
+        view.setBackgroundColor(Color.GRAY);
+        view.setLayoutParams(LayoutHelper.createFrame(
+                LayoutHelper.MATCH_PARENT, 2,
+                Gravity.TOP | Gravity.LEFT,
+                0, 51, 0, 0
+        ));
+
 
         viewPager = new ViewPager(getContext());
         viewPager.setLayoutParams(LayoutHelper.createFrame(
-                LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT,
+                LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT,
                 Gravity.TOP,
                 50, 0, 0, 0
         ));
@@ -151,7 +159,7 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
         this.availableReactions = availableReactions;
         TLRPC.TL_messageReactions reactions = message.getReactions();
 
-        MessagesController messagesController = chatActivity.getMessagesController();
+        messagesController = chatActivity.getMessagesController();
         ConnectionsManager connectionsManager = chatActivity.getConnectionsManager();
 
         TLRPC.TL_messages_getMessageReactionsList getMessageReactionsList = new TLRPC.TL_messages_getMessageReactionsList();
@@ -160,7 +168,7 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
         connectionsManager.sendRequest(getMessageReactionsList, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
             if (response != null) {
                 TLRPC.TL_messages_messageReactionsList list = (TLRPC.TL_messages_messageReactionsList) response;
-                updateList(reactions);
+                updateList(reactions, list);
                 Log.i("telegramTest", "response get reaction list success");
             }
             if (error != null) {
@@ -169,7 +177,7 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
         }));
     }
 
-    private void updateList(TLRPC.TL_messageReactions reactions) {
+    private void updateList(TLRPC.TL_messageReactions reactions, TLRPC.TL_messages_messageReactionsList list) {
         int i = 0;
         for (TLRPC.TL_reactionCount reactionCount : reactions.results) {
             ReactionView reactionView = new ReactionView(getContext());
@@ -189,5 +197,32 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
             layoutReactions.addView(reactionView);
             i++;
         }
+
+        ArrayList<UserReaction> userReactions = new ArrayList<>();
+        for (TLRPC.TL_messageUserReaction userReaction : list.reactions) {
+            UserReaction userReactionNew = new UserReaction();
+            userReactionNew.reaction = getReaction(userReaction.reaction);
+            userReactionNew.userChat = getUserOrChat(userReaction.user_id);
+            userReactions.add(userReactionNew);
+        }
+        ArrayList<ArrayList<UserReaction>> userReactionList = new ArrayList<>();
+        userReactionList.add(userReactions);
+        CustomViewPager customViewPager = new CustomViewPager(getContext(), userReactionList);
+        viewPager.setAdapter(customViewPager);
+    }
+
+    private TLRPC.TL_availableReaction getReaction(String reaction) {
+        for (TLRPC.TL_availableReaction availableReaction : availableReactions) {
+            if (availableReaction.reaction.equals(reaction)) {
+                return availableReaction;
+            }
+        }
+        return null;
+    }
+
+    private TLObject getUserOrChat(long id) {
+        TLRPC.Chat chat = messagesController.getChat(id);
+        TLRPC.User user = messagesController.getUser(id);
+        return chat == null ? user : chat;
     }
 }

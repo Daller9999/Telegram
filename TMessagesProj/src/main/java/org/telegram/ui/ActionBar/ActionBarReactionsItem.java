@@ -140,10 +140,6 @@ public class ActionBarReactionsItem extends FrameLayout {
         AvatarDrawable avatarDrawable;
         int rightMargin = 0;
 
-        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setColor(0x000);
-
         for (TLRPC.User userReaction : list.users) {
             if (i == 3) {
                 break;
@@ -158,13 +154,9 @@ public class ActionBarReactionsItem extends FrameLayout {
                 avatarDrawable.setInfo(chat == null ? user : chat);
                 imageView.setRoundRadius(AndroidUtilities.dp(20));
                 imageView.setLayoutParams(LayoutHelper.createFrame(
-                        30,
-                        30,
+                        30, 30,
                         Gravity.RIGHT | Gravity.CENTER_VERTICAL,
-                        0,
-                        0,
-                        rightMargin,
-                        0
+                        0, 0, rightMargin, 0
                 ));
                 addView(imageView);
 
