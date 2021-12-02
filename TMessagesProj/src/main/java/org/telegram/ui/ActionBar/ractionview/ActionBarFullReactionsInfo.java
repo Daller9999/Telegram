@@ -9,7 +9,6 @@ import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
@@ -20,13 +19,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager.widget.PagerAdapter;
-import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.exoplayer2.util.Log;
 
-import org.checkerframework.checker.units.qual.A;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
@@ -35,11 +32,8 @@ import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.Charts.data.ChartData;
 import org.telegram.ui.ChatActivity;
-import org.telegram.ui.Components.FilterTabsView;
 import org.telegram.ui.Components.LayoutHelper;
-import org.telegram.ui.Components.TableLayout;
 
 import java.util.ArrayList;
 
@@ -106,7 +100,7 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
 
         View viewBack = new View(getContext());
         viewBack.setLayoutParams(LayoutHelper.createFrame(
-                LayoutHelper.MATCH_PARENT, 40,
+                LayoutHelper.MATCH_PARENT, 71,
                 Gravity.TOP | Gravity.LEFT,
                 0, 0, 0, 0
         ));
@@ -127,7 +121,7 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
         horizontalScrollView.setLayoutParams(LayoutHelper.createFrame(
                 LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT,
                 Gravity.TOP,
-                0, 40 , 0, 0
+                0, 40, 0, 0
         ));
         horizontalScrollView.setHorizontalScrollBarEnabled(false);
         horizontalScrollView.addView(layoutReactions);
@@ -136,19 +130,20 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
         View view = new View(getContext());
         view.setBackgroundColor(Color.GRAY);
         view.setLayoutParams(LayoutHelper.createFrame(
-                LayoutHelper.MATCH_PARENT, 2,
+                LayoutHelper.MATCH_PARENT, 1,
                 Gravity.TOP | Gravity.LEFT,
-                0, 51, 0, 0
+                0, 81, 0, 0
         ));
         addView(view);
 
         adapter = new RecyclerReactionsAdapter();
         recyclerView = new RecyclerView(getContext());
         recyclerView.setAdapter(adapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setLayoutParams(LayoutHelper.createFrame(
                 LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT,
                 Gravity.TOP,
-                50, 0, 0, 0
+                0, 82, 0, 0
         ));
         addView(recyclerView);
     }

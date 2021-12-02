@@ -48,7 +48,7 @@ public class UserReactionView extends FrameLayout {
         avatarImageView.setLayoutParams(LayoutHelper.createFrame(
                 40, 40,
                 Gravity.TOP | Gravity.LEFT,
-                5, 5, 0, 0
+                10, 5, 0, 0
         ));
         AvatarDrawable avatarDrawable = new AvatarDrawable();
         avatarImageView.setForUserOrChat(userReaction.userChat, avatarDrawable);
@@ -59,15 +59,15 @@ public class UserReactionView extends FrameLayout {
         TextView textView = new TextView(getContext());
         textView.setLayoutParams(LayoutHelper.createFrame(
                 LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT,
-                Gravity.LEFT | Gravity.TOP,
-                50, 5, 0, 0
+                Gravity.LEFT | Gravity.CENTER_VERTICAL,
+                60, 0, 0, 0
         ));
         textView.setTextColor(Color.BLACK);
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
         String text = "";
         if (userReaction.userChat instanceof TLRPC.User) {
             TLRPC.User user = (TLRPC.User) userReaction.userChat;
-            text = user.username;
+            text = checkString(user.first_name) + " " + checkString(user.last_name);
         } else if (userReaction.userChat instanceof TLRPC.Chat) {
             TLRPC.Chat chat = (TLRPC.Chat) userReaction.userChat;
             text = chat.title;
@@ -85,10 +85,19 @@ public class UserReactionView extends FrameLayout {
                 reactionImageView
         );
         reactionImageView.setLayoutParams(LayoutHelper.createFrame(
-                40, 40,
-                Gravity.TOP | Gravity.RIGHT,
-                5, 5, 0, 0
+                30, 30,
+                Gravity.CENTER_VERTICAL | Gravity.RIGHT,
+                0, 0, 10, 0
         ));
         addView(reactionImageView);
+    }
+
+    private String checkString(String string) {
+        if (string == null) {
+            return "";
+        } else if (string.isEmpty()) {
+            return "";
+        }
+        return string;
     }
 }

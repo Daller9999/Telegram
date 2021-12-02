@@ -111,6 +111,8 @@ public class ActionBarReactionsItem extends FrameLayout {
     public void setMessage(MessageObject message, ChatActivity chatActivity, long chatId) {
         this.message = message;
         TLRPC.TL_messageReactions reactions = message.getReactions();
+        if (reactions == null) return;
+
         String text = reactions.results.size() + " Reactions";
         textView.setText(text);
 

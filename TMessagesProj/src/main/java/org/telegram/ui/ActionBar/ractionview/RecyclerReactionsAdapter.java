@@ -17,6 +17,7 @@ public class RecyclerReactionsAdapter extends RecyclerView.Adapter<RecyclerReact
     @Override
     public ReactionHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         ReactionsListView reactionsListView = new ReactionsListView(parent.getContext());
+        reactionsListView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         return new ReactionHolder(reactionsListView);
     }
 

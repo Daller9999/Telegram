@@ -10,6 +10,7 @@ import android.widget.ScrollView;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.Components.LayoutHelper;
 
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ public class ReactionsListView extends ScrollView {
 
     public ReactionsListView(Context context) {
         super(context);
+        setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         linearLayout = new LinearLayout(getContext());
         linearLayout.setOrientation(LinearLayout.VERTICAL);
         linearLayout.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -44,10 +46,9 @@ public class ReactionsListView extends ScrollView {
         UserReactionView userReactionView;
         for (UserReaction userReaction : userReactions) {
             userReactionView = new UserReactionView(getContext(), userReaction);
-            userReactionView.setLayoutParams(LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+            userReactionView.setLayoutParams(LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 50));
             linearLayout.addView(userReactionView);
         }
-        addView(linearLayout);
     }
 
 }
