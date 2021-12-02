@@ -20,6 +20,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
@@ -47,9 +48,10 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
     private OnButtonBack onButtonBack;
     private MessageObject message;
     private LinearLayout layoutReactions;
-    private ViewPager viewPager;
+    private RecyclerView recyclerView;
     private ArrayList<TLRPC.TL_availableReaction> availableReactions;
     private MessagesController messagesController;
+    private RecyclerReactionsAdapter adapter;
 
     public interface OnButtonBack {
         void onBackPressed();
@@ -125,7 +127,7 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
         horizontalScrollView.setLayoutParams(LayoutHelper.createFrame(
                 LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT,
                 Gravity.TOP,
-                0, 50 , 0, 0
+                0, 40 , 0, 0
         ));
         horizontalScrollView.setHorizontalScrollBarEnabled(false);
         horizontalScrollView.addView(layoutReactions);
@@ -138,15 +140,17 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
                 Gravity.TOP | Gravity.LEFT,
                 0, 51, 0, 0
         ));
+        addView(view);
 
-
-        viewPager = new ViewPager(getContext());
-        viewPager.setLayoutParams(LayoutHelper.createFrame(
-                LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT,
+        adapter = new RecyclerReactionsAdapter();
+        recyclerView = new RecyclerView(getContext());
+        recyclerView.setAdapter(adapter);
+        recyclerView.setLayoutParams(LayoutHelper.createFrame(
+                LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT,
                 Gravity.TOP,
                 50, 0, 0, 0
         ));
-        addView(viewPager);
+        addView(recyclerView);
     }
 
     public void setMessage(
@@ -207,8 +211,7 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
         }
         ArrayList<ArrayList<UserReaction>> userReactionList = new ArrayList<>();
         userReactionList.add(userReactions);
-        CustomViewPager customViewPager = new CustomViewPager(getContext(), userReactionList);
-        viewPager.setAdapter(customViewPager);
+        adapter.submitList(userReactionList);
     }
 
     private TLRPC.TL_availableReaction getReaction(String reaction) {
