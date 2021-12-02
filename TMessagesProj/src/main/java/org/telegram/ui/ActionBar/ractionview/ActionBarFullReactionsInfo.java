@@ -82,7 +82,12 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
     }
 
     private void init() {
-        setLayoutParams(LayoutHelper.createFrame(270, LayoutHelper.WRAP_CONTENT));
+        setLayoutParams(LayoutHelper.createFrame(
+                270, LayoutHelper.WRAP_CONTENT,
+                Gravity.CENTER,
+                5, 80, 30, 5
+        ));
+
         setBackground(Theme.createRoundRectDrawable(10, Color.WHITE));
         Button buttonBack = new Button(getContext());
         Drawable drawable = ContextCompat.getDrawable(getContext(), R.drawable.ic_ab_back);
@@ -98,11 +103,11 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
         TextView textView = new TextView(getContext());
         textView.setText("Back");
         textView.setTextColor(Color.BLACK);
-        textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
+        textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
         textView.setLayoutParams(LayoutHelper.createFrame(
                 LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT,
                 Gravity.TOP | Gravity.LEFT,
-                65, 13, 0, 0
+                55, 10, 0, 0
         ));
         addView(textView);
 

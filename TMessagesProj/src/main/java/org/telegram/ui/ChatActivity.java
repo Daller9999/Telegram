@@ -19996,13 +19996,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
                 reactionView = new ReactionView(popupLayout.getContext(), themeDelegate);
                 reactionView.setLayoutParams(LayoutHelper.createFrame(
-                        300,
-                        90,
+                        300, 90,
                         Gravity.BOTTOM,
-                        0f,
-                        0f,
-                        0f,
-                        -15f
+                        0f, 0f, 0f, -15f
                 ));
                 reactionView.setReactions(availableReactions);
                 reactionView.setOnReactionCallBack(reaction -> {

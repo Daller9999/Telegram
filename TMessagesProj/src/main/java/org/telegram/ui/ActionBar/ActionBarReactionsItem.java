@@ -1,7 +1,6 @@
 package org.telegram.ui.ActionBar;
 
 import android.content.Context;
-import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
@@ -89,13 +88,9 @@ public class ActionBarReactionsItem extends FrameLayout {
         textView.setTextColor(textColor);
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         addView(textView, LayoutHelper.createFrame(
-                LayoutHelper.WRAP_CONTENT,
-                LayoutHelper.WRAP_CONTENT,
+                LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT,
                 (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.CENTER_VERTICAL,
-                -8,
-                0,
-                0,
-                0
+                -8, 0, 0, 0
         ));
     }
 

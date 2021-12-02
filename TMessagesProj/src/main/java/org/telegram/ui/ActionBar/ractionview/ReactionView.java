@@ -32,6 +32,7 @@ public class ReactionView extends FrameLayout {
     private static final int margin = 3;
     private ImageView imageView;
     private static final int marginBorder = 10;
+    private static final int marginText = 35;
 
     public ReactionView(@NonNull Context context) {
         super(context);
@@ -99,7 +100,7 @@ public class ReactionView extends FrameLayout {
         textView.setLayoutParams(LayoutHelper.createFrame(
                 LayoutHelper.WRAP_CONTENT, 20,
                 Gravity.TOP | Gravity.LEFT | Gravity.RIGHT,
-                margin + 40, 5, 10, 0
+                margin + marginText, 5, 10, 0
         ));
         textView.setTextColor(Color.parseColor("#368dd0"));
         addView(textView);
@@ -133,7 +134,7 @@ public class ReactionView extends FrameLayout {
         textView.setLayoutParams(LayoutHelper.createFrame(
                 LayoutHelper.WRAP_CONTENT, 20,
                 Gravity.TOP | Gravity.LEFT | Gravity.RIGHT,
-                margin + 40 + marginBorder, 5, 10, 0
+                margin + marginText + marginBorder, 5, 10, 0
         ));
     }
 
@@ -161,7 +162,7 @@ public class ReactionView extends FrameLayout {
         textView.setLayoutParams(LayoutHelper.createFrame(
                 LayoutHelper.WRAP_CONTENT, 20,
                 Gravity.TOP | Gravity.LEFT | Gravity.RIGHT,
-                margin + 40, 5, 10 + marginBorder, 0
+                margin + marginText, 5, 10 + marginBorder, 0
         ));
     }
 
@@ -189,7 +190,7 @@ public class ReactionView extends FrameLayout {
         textView.setLayoutParams(LayoutHelper.createFrame(
                 LayoutHelper.WRAP_CONTENT, 20,
                 Gravity.TOP | Gravity.LEFT | Gravity.RIGHT,
-                margin + 40, 5, 10, 0
+                margin + marginText, 5, 10, 0
         ));
     }
 
