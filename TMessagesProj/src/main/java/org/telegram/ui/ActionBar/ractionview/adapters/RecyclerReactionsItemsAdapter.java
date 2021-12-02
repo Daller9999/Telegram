@@ -39,7 +39,7 @@ public class RecyclerReactionsItemsAdapter extends RecyclerView.Adapter<Recycler
 
     @Override
     public void onBindViewHolder(@NonNull ReactionViewHolder holder, int position) {
-        holder.bind(totalReactions.get(position));
+        holder.bind(totalReactions.get(position), position == 0, position == totalReactions.size() - 1);
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -84,7 +84,15 @@ public class RecyclerReactionsItemsAdapter extends RecyclerView.Adapter<Recycler
             reactionView.setOnClickListener(v -> onItemClicked.onClick(getAdapterPosition()));
         }
 
-        public void bind(TotalReaction totalReaction) {
+        public void bind(TotalReaction totalReaction, boolean isLeft, boolean isRight) {
+            if (isLeft) {
+                reactionView.setMarginLeft();
+            } else if (isRight) {
+                reactionView.setMarginRight();
+            } else {
+                reactionView.setMarginDefault();
+            }
+
             if (totalReaction.reaction == null) {
                 reactionView.setDefault(totalReaction.count);
             } else {

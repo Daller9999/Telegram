@@ -29,8 +29,9 @@ public class ReactionView extends FrameLayout {
     private TextView textView;
     private View viewMain;
     private View viewSelected;
-    private final int margin = 5;
+    private static final int margin = 3;
     private ImageView imageView;
+    private static final int marginBorder = 10;
 
     public ReactionView(@NonNull Context context) {
         super(context);
@@ -106,6 +107,90 @@ public class ReactionView extends FrameLayout {
 
     public void setActive(boolean isActive) {
         viewSelected.setVisibility(isActive ? View.VISIBLE : View.GONE);
+    }
+
+    public void setMarginLeft() {
+        viewSelected.setLayoutParams(LayoutHelper.createFrame(
+                68, 33,
+                Gravity.LEFT | Gravity.RIGHT,
+                margin + marginBorder, 0, margin, 0
+        ));
+        viewMain.setLayoutParams(LayoutHelper.createFrame(
+                64, 29,
+                Gravity.TOP | Gravity.LEFT | Gravity.RIGHT,
+                margin + 2 + marginBorder, 2, margin + 2, 0
+        ));
+        imageView.setLayoutParams(LayoutHelper.createFrame(
+                22, 22,
+                Gravity.CENTER_VERTICAL | Gravity.LEFT,
+                margin + 10 + marginBorder, 0, 0, 0
+        ));
+        backupImageReaction.setLayoutParams(LayoutHelper.createFrame(
+                22, 22,
+                Gravity.CENTER_VERTICAL | Gravity.LEFT,
+                margin + 10 + marginBorder, 0, 0, 0
+        ));
+        textView.setLayoutParams(LayoutHelper.createFrame(
+                LayoutHelper.WRAP_CONTENT, 20,
+                Gravity.TOP | Gravity.LEFT | Gravity.RIGHT,
+                margin + 40 + marginBorder, 5, 10, 0
+        ));
+    }
+
+    public void setMarginRight() {
+        viewSelected.setLayoutParams(LayoutHelper.createFrame(
+                68, 33,
+                Gravity.LEFT | Gravity.RIGHT,
+                margin, 0, margin + marginBorder, 0
+        ));
+        viewMain.setLayoutParams(LayoutHelper.createFrame(
+                64, 29,
+                Gravity.TOP | Gravity.LEFT | Gravity.RIGHT,
+                margin + 2, 2, margin + 2 + marginBorder, 0
+        ));
+        imageView.setLayoutParams(LayoutHelper.createFrame(
+                22, 22,
+                Gravity.CENTER_VERTICAL | Gravity.LEFT,
+                margin + 10, 0, 0, 0
+        ));
+        backupImageReaction.setLayoutParams(LayoutHelper.createFrame(
+                22, 22,
+                Gravity.CENTER_VERTICAL | Gravity.LEFT,
+                margin + 10, 0, 0, 0
+        ));
+        textView.setLayoutParams(LayoutHelper.createFrame(
+                LayoutHelper.WRAP_CONTENT, 20,
+                Gravity.TOP | Gravity.LEFT | Gravity.RIGHT,
+                margin + 40, 5, 10 + marginBorder, 0
+        ));
+    }
+
+    public void setMarginDefault() {
+        viewSelected.setLayoutParams(LayoutHelper.createFrame(
+                68, 33,
+                Gravity.LEFT | Gravity.RIGHT,
+                margin, 0, margin, 0
+        ));
+        viewMain.setLayoutParams(LayoutHelper.createFrame(
+                64, 29,
+                Gravity.TOP | Gravity.LEFT | Gravity.RIGHT,
+                margin + 2, 2, margin + 2, 0
+        ));
+        imageView.setLayoutParams(LayoutHelper.createFrame(
+                22, 22,
+                Gravity.CENTER_VERTICAL | Gravity.LEFT,
+                margin + 10, 0, 0, 0
+        ));
+        backupImageReaction.setLayoutParams(LayoutHelper.createFrame(
+                22, 22,
+                Gravity.CENTER_VERTICAL | Gravity.LEFT,
+                margin + 10, 0, 0, 0
+        ));
+        textView.setLayoutParams(LayoutHelper.createFrame(
+                LayoutHelper.WRAP_CONTENT, 20,
+                Gravity.TOP | Gravity.LEFT | Gravity.RIGHT,
+                margin + 40, 5, 10, 0
+        ));
     }
 
 

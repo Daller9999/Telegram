@@ -42,6 +42,8 @@ public class ReactionsListView extends ScrollView {
     }
 
     public void bind(ArrayList<UserReaction> userReactions) {
+        if (userReactions == null) return;
+
         linearLayout.removeAllViews();
         UserReactionView userReactionView;
         for (UserReaction userReaction : userReactions) {
