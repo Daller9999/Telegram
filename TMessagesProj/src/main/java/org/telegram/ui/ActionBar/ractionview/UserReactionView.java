@@ -16,6 +16,7 @@ import androidx.annotation.RequiresApi;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ImageLocation;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.ui.ActionBar.ractionview.data.UserReaction;
 import org.telegram.ui.Components.AvatarDrawable;
 import org.telegram.ui.Components.BackupImageView;
 import org.telegram.ui.Components.LayoutHelper;

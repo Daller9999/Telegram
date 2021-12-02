@@ -11,8 +11,6 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
-import android.widget.HorizontalScrollView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -20,10 +18,13 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.LinearSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.SnapHelper;
 
 import com.google.android.exoplayer2.util.Log;
 
+import org.checkerframework.checker.units.qual.A;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
@@ -32,20 +33,27 @@ import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
+import org.telegram.ui.ActionBar.ractionview.adapters.RecyclerReactionsAdapter;
+import org.telegram.ui.ActionBar.ractionview.adapters.RecyclerReactionsItemsAdapter;
+import org.telegram.ui.ActionBar.ractionview.data.TotalReaction;
+import org.telegram.ui.ActionBar.ractionview.data.UserReaction;
 import org.telegram.ui.ChatActivity;
 import org.telegram.ui.Components.LayoutHelper;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class ActionBarFullReactionsInfo extends FrameLayout {
 
     private OnButtonBack onButtonBack;
     private MessageObject message;
-    private LinearLayout layoutReactions;
+    private RecyclerView recyclerViewReactions;
     private RecyclerView recyclerView;
     private ArrayList<TLRPC.TL_availableReaction> availableReactions;
     private MessagesController messagesController;
     private RecyclerReactionsAdapter adapter;
+    private RecyclerReactionsItemsAdapter reactionsItemsAdapter;
+    private long lastTimeClick = 0;
 
     public interface OnButtonBack {
         void onBackPressed();
@@ -83,18 +91,18 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
         buttonBack.setLayoutParams(LayoutHelper.createFrame(
                 30, 30,
                 Gravity.TOP | Gravity.LEFT,
-                5, 5, 0, 0
+                10, 10, 0, 0
         ));
         addView(buttonBack);
 
         TextView textView = new TextView(getContext());
         textView.setText("Back");
         textView.setTextColor(Color.BLACK);
-        textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
+        textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
         textView.setLayoutParams(LayoutHelper.createFrame(
                 LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT,
                 Gravity.TOP | Gravity.LEFT,
-                45, 8, 0, 0
+                65, 13, 0, 0
         ));
         addView(textView);
 
@@ -112,39 +120,52 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
         });
         addView(viewBack);
 
-        layoutReactions = new LinearLayout(getContext());
-        layoutReactions.setOrientation(LinearLayout.HORIZONTAL);
-        layoutReactions.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 50));
-        layoutReactions.setHorizontalScrollBarEnabled(false);
-
-        HorizontalScrollView horizontalScrollView = new HorizontalScrollView(getContext());
-        horizontalScrollView.setLayoutParams(LayoutHelper.createFrame(
-                LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT,
+        reactionsItemsAdapter = new RecyclerReactionsItemsAdapter(pos -> {
+            recyclerView.smoothScrollToPosition(pos);
+            lastTimeClick = System.currentTimeMillis();
+        });
+        recyclerViewReactions = new RecyclerView(getContext());
+        recyclerViewReactions.setAdapter(reactionsItemsAdapter);
+        recyclerViewReactions.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        recyclerViewReactions.setLayoutParams(LayoutHelper.createFrame(
+                LayoutHelper.MATCH_PARENT, 50,
                 Gravity.TOP,
-                0, 40, 0, 0
+                0, 50, 0, 0
         ));
-        horizontalScrollView.setHorizontalScrollBarEnabled(false);
-        horizontalScrollView.addView(layoutReactions);
-        addView(horizontalScrollView);
+        recyclerViewReactions.setHorizontalScrollBarEnabled(false);
+        addView(recyclerViewReactions);
 
         View view = new View(getContext());
         view.setBackgroundColor(Color.GRAY);
         view.setLayoutParams(LayoutHelper.createFrame(
                 LayoutHelper.MATCH_PARENT, 1,
                 Gravity.TOP | Gravity.LEFT,
-                0, 81, 0, 0
+                0, 91, 0, 0
         ));
         addView(view);
 
         adapter = new RecyclerReactionsAdapter();
         recyclerView = new RecyclerView(getContext());
         recyclerView.setAdapter(adapter);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         recyclerView.setLayoutParams(LayoutHelper.createFrame(
                 LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT,
                 Gravity.TOP,
-                0, 82, 0, 0
+                0, 92, 0, 0
         ));
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                LinearLayoutManager linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                int pos = linearLayoutManager.findFirstVisibleItemPosition();
+                if (System.currentTimeMillis() - lastTimeClick > 500) {
+                    recyclerViewReactions.smoothScrollToPosition(pos);
+                    reactionsItemsAdapter.setActivePosition(pos);
+                }
+            }
+        });
+        SnapHelper snapHelper = new LinearSnapHelper();
+        snapHelper.attachToRecyclerView(recyclerView);
         addView(recyclerView);
     }
 
@@ -178,35 +199,59 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
 
     private void updateList(TLRPC.TL_messageReactions reactions, TLRPC.TL_messages_messageReactionsList list) {
         int i = 0;
+        ArrayList<TotalReaction> totalReactions = new ArrayList<>();
+        totalReactions.add(getAllReactionView(reactions));
+        ArrayList<TLRPC.TL_availableReaction> currentReaction = new ArrayList<>();
+        HashMap<TLRPC.TL_availableReaction, ArrayList<UserReaction>> hashMap = new HashMap<>();
         for (TLRPC.TL_reactionCount reactionCount : reactions.results) {
-            ReactionView reactionView = new ReactionView(getContext());
             for (TLRPC.TL_availableReaction availableReaction : availableReactions) {
                 if (reactionCount.reaction.equals(availableReaction.reaction)) {
-                    reactionView.setReaction(availableReaction, reactionCount.count);
+                    currentReaction.add(availableReaction);
+                    TotalReaction totalReaction = new TotalReaction();
+                    totalReaction.reaction = availableReaction;
+                    totalReaction.count = reactionCount.count;
+                    totalReactions.add(totalReaction);
                 }
             }
-            reactionView.setLayoutParams(LayoutHelper.createLinear(
-                    60, 30,
-                    Gravity.RIGHT | Gravity.LEFT,
-                    i == 0 ? 20 : 5,
-                    0,
-                    i == reactions.results.size() - 1 ? 20 : 5,
-                    0
-            ));
-            layoutReactions.addView(reactionView);
             i++;
         }
+        reactionsItemsAdapter.submitList(totalReactions);
 
         ArrayList<UserReaction> userReactions = new ArrayList<>();
         for (TLRPC.TL_messageUserReaction userReaction : list.reactions) {
             UserReaction userReactionNew = new UserReaction();
-            userReactionNew.reaction = getReaction(userReaction.reaction);
-            userReactionNew.userChat = getUserOrChat(userReaction.user_id);
+            TLObject userOrChat = getUserOrChat(userReaction.user_id);
+            TLRPC.TL_availableReaction availableReaction = getReaction(userReaction.reaction);
+            userReactionNew.reaction = availableReaction;
+            userReactionNew.userChat = userOrChat;
             userReactions.add(userReactionNew);
+            if (!hashMap.containsKey(availableReaction)) {
+                hashMap.put(availableReaction, new ArrayList<>());
+            }
+            hashMap.get(availableReaction).add(userReactionNew);
         }
         ArrayList<ArrayList<UserReaction>> userReactionList = new ArrayList<>();
         userReactionList.add(userReactions);
+
+        for (TLRPC.TL_availableReaction reaction : currentReaction) {
+            userReactionList.add(hashMap.get(reaction));
+        }
         adapter.submitList(userReactionList);
+
+        int size = Math.min(userReactions.size(), 7);
+        setLayoutParams(LayoutHelper.createFrame(250, 80 + 50 * size));
+    }
+
+    private TotalReaction getAllReactionView(TLRPC.TL_messageReactions reactions) {
+        int count = 0;
+        for (TLRPC.TL_reactionCount reaction : reactions.results) {
+            count += reaction.count;
+        }
+        TotalReaction totalReaction = new TotalReaction();
+        totalReaction.reaction = null;
+        totalReaction.count = count;
+        totalReaction.isSelected = true;
+        return totalReaction;
     }
 
     private TLRPC.TL_availableReaction getReaction(String reaction) {

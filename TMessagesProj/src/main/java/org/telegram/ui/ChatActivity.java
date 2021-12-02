@@ -20299,7 +20299,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
             actionBarFullReactionsInfo.setLayoutParams(LayoutHelper.createFrame(
                     250,
-                    300,
+                    LayoutHelper.WRAP_CONTENT,
                     Gravity.CENTER,
                     15,
                     65,
@@ -20362,7 +20362,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             scrimPopupWindow.setClippingEnabled(true);
             scrimPopupWindow.setAnimationStyle(R.style.PopupContextAnimation);
             scrimPopupWindow.setFocusable(true);
-            actionBarFullReactionsInfo.measure(View.MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(1000), View.MeasureSpec.AT_MOST), View.MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(1000), View.MeasureSpec.AT_MOST));
+            actionBarFullReactionsInfo.measure(
+                    View.MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(1000), View.MeasureSpec.AT_MOST),
+                    View.MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(1000), View.MeasureSpec.AT_MOST)
+            );
             scrimPopupContainerLayout.measure(View.MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(1000), View.MeasureSpec.AT_MOST), View.MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(1000), View.MeasureSpec.AT_MOST));
             scrimPopupWindow.setInputMethodMode(ActionBarPopupWindow.INPUT_METHOD_NOT_NEEDED);
             scrimPopupWindow.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED);

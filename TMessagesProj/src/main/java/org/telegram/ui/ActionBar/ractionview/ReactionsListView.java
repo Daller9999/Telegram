@@ -10,7 +10,7 @@ import android.widget.ScrollView;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
-import org.telegram.messenger.AndroidUtilities;
+import org.telegram.ui.ActionBar.ractionview.data.UserReaction;
 import org.telegram.ui.Components.LayoutHelper;
 
 import java.util.ArrayList;

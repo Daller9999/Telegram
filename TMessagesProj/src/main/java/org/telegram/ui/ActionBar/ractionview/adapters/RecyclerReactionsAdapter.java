@@ -1,4 +1,4 @@
-package org.telegram.ui.ActionBar.ractionview;
+package org.telegram.ui.ActionBar.ractionview.adapters;
 
 import android.annotation.SuppressLint;
 import android.view.View;
@@ -6,6 +6,9 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import org.telegram.ui.ActionBar.ractionview.ReactionsListView;
+import org.telegram.ui.ActionBar.ractionview.data.UserReaction;
 
 import java.util.ArrayList;
 
