@@ -32,6 +32,7 @@ public class PopupMainContainer extends FrameLayout {
 
     private LinearLayout scrimPopupContainerLayout;
     private ActionBarFullReactionsInfo actionBarFullReactionsInfo;
+    long lastMove = 0;
 
     public PopupMainContainer(
             @NonNull Context context,
@@ -58,18 +59,17 @@ public class PopupMainContainer extends FrameLayout {
     }
 
     private void init() {
-        setLayoutParams(LayoutHelper.createFrame(300, 700));
+        setLayoutParams(LayoutHelper.createFrame(300, LayoutHelper.WRAP_CONTENT));
         Drawable shadowDrawable = getContext().getResources().getDrawable(R.drawable.popup_fixed_alert).mutate();
         Rect backgroundPaddings = new Rect();
         shadowDrawable.getPadding(backgroundPaddings);
-        // setBackground(shadowDrawable);*/
 
         View viewBack = new View(getContext());
         viewBack.setBackground(shadowDrawable);
         addView(viewBack);
 
         scrimPopupContainerLayout.setLayoutParams(LayoutHelper.createFrame(
-                width, minHeight
+                width, LayoutHelper.WRAP_CONTENT
         ));
         addView(scrimPopupContainerLayout);
 
@@ -93,25 +93,33 @@ public class PopupMainContainer extends FrameLayout {
         HorizontalScrollView horizontalScrollView = new HorizontalScrollView(getContext());
         horizontalScrollView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
         horizontalScrollView.setHorizontalScrollBarEnabled(false);
-        horizontalScrollView.getViewTreeObserver().addOnScrollChangedListener(() -> {
-            Log.i("testApp", "x = " + horizontalScrollView.getScrollX());
-            float percent = (float) horizontalScrollView.getScrollX() / (float) AndroidUtilities.dp(width);
-            viewBack.setLayoutParams(LayoutHelper.createFrame(
-                    width, minHeight + (maxHeight - minHeight) * percent,
-                    Gravity.TOP,
-                    0, 0, 0, 0
-            ));
-            linearLayout.setLayoutParams(LayoutHelper.createFrame(
-                    width, minHeight + (maxHeight - minHeight) * percent,
-                    Gravity.TOP,
-                    0, 0, 0, 0
-            ));
-            actionBarFullReactionsInfo.setLayoutParams(LayoutHelper.createLinear(
-                    width, (int) (minHeight + (maxHeight - minHeight) * percent),
-                    Gravity.TOP,
-                    0, 0, 0, 0
-            ));
-        });
+        /*horizontalScrollView.getViewTreeObserver().addOnScrollChangedListener(() -> {
+            if (System.currentTimeMillis() - lastMove > 50) {
+                float percent = (float) horizontalScrollView.getScrollX() / (float) AndroidUtilities.dp(width);
+                if (percent < 0) percent = 0;
+                setLayoutParams(LayoutHelper.createFrame(
+                        width, (int) (minHeight + (maxHeight - minHeight) * percent),
+                        Gravity.TOP,
+                        0, 0, 0, 0
+                ));
+                viewBack.setLayoutParams(LayoutHelper.createFrame(
+                        width, minHeight + (maxHeight - minHeight) * percent,
+                        Gravity.TOP,
+                        0, 0, 0, 0
+                ));
+                linearLayout.setLayoutParams(LayoutHelper.createFrame(
+                        width, minHeight + (maxHeight - minHeight) * percent,
+                        Gravity.TOP,
+                        0, 0, 0, 0
+                ));
+                actionBarFullReactionsInfo.setLayoutParams(LayoutHelper.createLinear(
+                        width, (int) (minHeight + (maxHeight - minHeight) * percent),
+                        Gravity.TOP,
+                        0, 0, 0, 0
+                ));
+                lastMove = System.currentTimeMillis();
+            }
+        });*/
         horizontalScrollView.setLayoutParams(LayoutHelper.createFrame(
                 width, FrameLayout.LayoutParams.WRAP_CONTENT,
                 Gravity.TOP,
@@ -121,7 +129,7 @@ public class PopupMainContainer extends FrameLayout {
         addView(horizontalScrollView);
 
         viewBack.setLayoutParams(LayoutHelper.createFrame(
-                width, minHeight,
+                width, scrimPopupContainerLayout.getHeight(),
                 Gravity.TOP,
                 0, 0, 0, 0
         ));
@@ -130,5 +138,15 @@ public class PopupMainContainer extends FrameLayout {
                 Gravity.TOP,
                 0, 0, 0, 0
         ));
+
+        actionBarFullReactionsInfo.setOnButtonBack(() -> {
+            horizontalScrollView.smoothScrollTo(0, 0);
+        });
+
+        AndroidUtilities.runOnUIThread(() -> {
+            viewBack.setLayoutParams(new FrameLayout.LayoutParams(
+                    AndroidUtilities.dp(width), scrimPopupContainerLayout.getMeasuredHeight()
+            ));
+        }, 50);
     }
 }

@@ -20088,7 +20088,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 scrimPopupContainerLayout.addView(reactionView);
             }
 
-            /*scrimPopupContainerLayout.setOnTouchListener(new View.OnTouchListener() {
+            scrimPopupContainerLayout.setOnTouchListener(new View.OnTouchListener() {
 
                 private int[] pos = new int[2];
 
@@ -20110,7 +20110,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                     return false;
                 }
-            });*/
+            });
             scrimPopupContainerLayout.setOrientation(LinearLayout.VERTICAL);
             boolean showMessageSeen = currentChat != null && message.isOutOwner() && message.isSent() && !message.isEditing() && !message.isSending() && !message.isSendError() && !message.isContentUnread() && !message.isUnread() && (ConnectionsManager.getInstance(currentAccount).getCurrentTime() - message.messageOwner.date < 7 * 86400) && (ChatObject.isMegagroup(currentChat) || !ChatObject.isChannel(currentChat)) && chatInfo != null && chatInfo.participants_count < 50 && !(message.messageOwner.action instanceof TLRPC.TL_messageActionChatJoinedByRequest);
             MessageSeenView messageSeenView = null;

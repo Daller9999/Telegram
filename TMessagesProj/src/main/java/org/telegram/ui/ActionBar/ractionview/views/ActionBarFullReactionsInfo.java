@@ -66,6 +66,10 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
         this.onButtonBack = onButtonBack;
     }
 
+    public void setOnButtonBack(OnButtonBack onButtonBack) {
+        this.onButtonBack = onButtonBack;
+    }
+
     public ActionBarFullReactionsInfo(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         init();
@@ -83,12 +87,6 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
     }
 
     private void init() {
-        /*setLayoutParams(LayoutHelper.createLinear(
-                270, LayoutHelper.WRAP_CONTENT,
-                Gravity.TOP | Gravity.LEFT,
-                5, 80, 30, 5
-        ));*/
-
         Drawable shadowDrawable = getContext().getResources().getDrawable(R.drawable.popup_fixed_alert).mutate();
         Rect backgroundPaddings = new Rect();
         shadowDrawable.getPadding(backgroundPaddings);
@@ -134,6 +132,7 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
             lastTimeClick = System.currentTimeMillis();
         });
         recyclerViewReactions = new RecyclerView(getContext());
+        recyclerViewReactions.setNestedScrollingEnabled(false);
         recyclerViewReactions.setAdapter(reactionsItemsAdapter);
         recyclerViewReactions.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         recyclerViewReactions.setLayoutParams(LayoutHelper.createFrame(
@@ -155,8 +154,12 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
 
         adapter = new RecyclerReactionsAdapter();
         recyclerView = new RecyclerView(getContext());
+        recyclerView.setNestedScrollingEnabled(false);
         recyclerView.setAdapter(adapter);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
+        layoutManager.setReverseLayout(false);
+        layoutManager.setStackFromEnd(false);
+        recyclerView.setLayoutManager(layoutManager);
         recyclerView.setLayoutParams(LayoutHelper.createFrame(
                 LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT,
                 Gravity.TOP,
