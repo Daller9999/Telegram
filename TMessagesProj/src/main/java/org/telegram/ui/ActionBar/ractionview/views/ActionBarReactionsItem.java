@@ -1,4 +1,4 @@
-package org.telegram.ui.ActionBar;
+package org.telegram.ui.ActionBar.ractionview.views;
 
 import android.content.Context;
 import android.graphics.PorterDuff;
@@ -24,8 +24,10 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ChatActivity;
 import org.telegram.ui.Components.AvatarDrawable;
 import org.telegram.ui.Components.BackupImageView;
@@ -111,7 +113,7 @@ public class ActionBarReactionsItem extends FrameLayout {
         String text = reactions.results.size() + " Reactions";
         textView.setText(text);
 
-        currentAccount = chatActivity.currentAccount;
+        currentAccount = UserConfig.selectedAccount;
 
         MessagesController messagesController = chatActivity.getMessagesController();
         ConnectionsManager connectionsManager = chatActivity.getConnectionsManager();

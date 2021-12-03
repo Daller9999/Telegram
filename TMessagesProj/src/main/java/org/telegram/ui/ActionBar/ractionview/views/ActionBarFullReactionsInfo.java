@@ -1,8 +1,9 @@
-package org.telegram.ui.ActionBar.ractionview;
+package org.telegram.ui.ActionBar.ractionview.views;
 
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.util.AttributeSet;
@@ -82,13 +83,17 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
     }
 
     private void init() {
-        setLayoutParams(LayoutHelper.createFrame(
+        /*setLayoutParams(LayoutHelper.createLinear(
                 270, LayoutHelper.WRAP_CONTENT,
-                Gravity.CENTER,
+                Gravity.TOP | Gravity.LEFT,
                 5, 80, 30, 5
-        ));
+        ));*/
 
-        setBackground(Theme.createRoundRectDrawable(10, Color.WHITE));
+        Drawable shadowDrawable = getContext().getResources().getDrawable(R.drawable.popup_fixed_alert).mutate();
+        Rect backgroundPaddings = new Rect();
+        shadowDrawable.getPadding(backgroundPaddings);
+        setBackground(shadowDrawable);
+
         Button buttonBack = new Button(getContext());
         Drawable drawable = ContextCompat.getDrawable(getContext(), R.drawable.ic_ab_back);
         drawable.setColorFilter(Color.BLACK, PorterDuff.Mode.MULTIPLY);
@@ -107,7 +112,7 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
         textView.setLayoutParams(LayoutHelper.createFrame(
                 LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT,
                 Gravity.TOP | Gravity.LEFT,
-                55, 10, 0, 0
+                50, 10, 0, 0
         ));
         addView(textView);
 
@@ -118,7 +123,6 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
                 0, 0, 0, 0
         ));
         viewBack.setOnClickListener(v -> {
-            setVisibility(View.GONE);
             if (onButtonBack != null) {
                 onButtonBack.onBackPressed();
             }
@@ -244,7 +248,7 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
         adapter.submitList(userReactionList);
 
         int size = Math.min(userReactions.size(), 7);
-        setLayoutParams(LayoutHelper.createFrame(250, 80 + 50 * size));
+        // setLayoutParams(LayoutHelper.createLinear(250, 80 + 50 * size));
     }
 
     private TotalReaction getAllReactionView(TLRPC.TL_messageReactions reactions) {

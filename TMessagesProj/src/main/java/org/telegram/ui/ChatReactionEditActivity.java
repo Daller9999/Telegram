@@ -226,8 +226,6 @@ public class ChatReactionEditActivity extends BaseFragment {
     private SizeNotifierFrameLayout initGestureBackView(Context context) {
         SizeNotifierFrameLayout sizeNotifierFrameLayout = new SizeNotifierFrameLayout(context) {
 
-            private boolean ignoreLayout;
-
             @Override
             protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
                 int widthSize = MeasureSpec.getSize(widthMeasureSpec);
@@ -236,12 +234,6 @@ public class ChatReactionEditActivity extends BaseFragment {
                 setMeasuredDimension(widthSize, heightSize);
 
                 measureChildWithMargins(actionBar, widthMeasureSpec, 0, heightMeasureSpec, 0);
-
-                int keyboardSize = measureKeyboardHeight();
-                if (keyboardSize > AndroidUtilities.dp(20)) {
-                    ignoreLayout = true;
-                    ignoreLayout = false;
-                }
 
                 int childCount = getChildCount();
                 for (int i = 0; i < childCount; i++) {
@@ -311,14 +303,6 @@ public class ChatReactionEditActivity extends BaseFragment {
                 }
 
                 notifyHeightChanged();
-            }
-
-            @Override
-            public void requestLayout() {
-                if (ignoreLayout) {
-                    return;
-                }
-                super.requestLayout();
             }
         };
         sizeNotifierFrameLayout.setOnTouchListener((v, event) -> true);

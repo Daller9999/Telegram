@@ -61,7 +61,7 @@ public class ActionBarMenuSubItem extends FrameLayout {
         iconColor = getThemedColor(Theme.key_actionBarDefaultSubmenuItemIcon);
         selectorColor = getThemedColor(Theme.key_dialogButtonSelector);
 
-        updateBackground();
+        // updateBackground();
         setPadding(AndroidUtilities.dp(18), 0, AndroidUtilities.dp(18), 0);
 
         imageView = new ImageView(context);
@@ -217,18 +217,18 @@ public class ActionBarMenuSubItem extends FrameLayout {
     }
 
     public void updateSelectorBackground(boolean top, boolean bottom) {
-        if (this.top == top && this.bottom == bottom) {
+        /*if (this.top == top && this.bottom == bottom) {
             return;
         }
         this.top = top;
         this.bottom = bottom;
-        updateBackground();
+        updateBackground();*/
     }
 
     void updateBackground() {
-        int topBackgroundRadius = top ? 6 : 0;
+        /*int topBackgroundRadius = top ? 6 : 0;
         int bottomBackgroundRadius = bottom ? 6 : 0;
-        setBackground(Theme.createRadSelectorDrawable(selectorColor, topBackgroundRadius, bottomBackgroundRadius));
+        setBackground(Theme.createRadSelectorDrawable(selectorColor, topBackgroundRadius, bottomBackgroundRadius));*/
     }
 
     private int getThemedColor(String key) {

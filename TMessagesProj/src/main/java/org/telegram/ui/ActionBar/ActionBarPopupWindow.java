@@ -102,7 +102,7 @@ public class ActionBarPopupWindow extends PopupWindow {
         protected LinearLayout linearLayout;
 
         private int backgroundColor = Color.WHITE;
-        protected Drawable backgroundDrawable;
+        // protected Drawable backgroundDrawable;
 
         private boolean fitItems;
         private final Theme.ResourcesProvider resourcesProvider;
@@ -119,10 +119,10 @@ public class ActionBarPopupWindow extends PopupWindow {
             super(context);
             this.resourcesProvider = resourcesProvider;
 
-            backgroundDrawable = getResources().getDrawable(resId).mutate();
+            /*backgroundDrawable = getResources().getDrawable(resId).mutate();
             if (backgroundDrawable != null) {
                 backgroundDrawable.getPadding(bgPaddings);
-            }
+            }*/
             setBackgroundColor(getThemedColor(Theme.key_actionBarDefaultSubmenuBackground));
 
             setPadding(AndroidUtilities.dp(8), AndroidUtilities.dp(8), AndroidUtilities.dp(8), AndroidUtilities.dp(8));
@@ -204,7 +204,7 @@ public class ActionBarPopupWindow extends PopupWindow {
 
         public void setBackgroundColor(int color) {
             if (backgroundColor != color) {
-                backgroundDrawable.setColorFilter(new PorterDuffColorFilter(backgroundColor = color, PorterDuff.Mode.MULTIPLY));
+                // backgroundDrawable.setColorFilter(new PorterDuffColorFilter(backgroundColor = color, PorterDuff.Mode.MULTIPLY));
             }
         }
 
@@ -266,13 +266,13 @@ public class ActionBarPopupWindow extends PopupWindow {
             invalidate();
         }
 
-        public void setBackgroundDrawable(Drawable drawable) {
+        /*public void setBackgroundDrawable(Drawable drawable) {
             backgroundColor = Color.WHITE;
             backgroundDrawable = drawable;
             if (backgroundDrawable != null) {
                 backgroundDrawable.getPadding(bgPaddings);
             }
-        }
+        }*/
 
         private void startChildAnimation(View child) {
             if (animationEnabled) {
@@ -331,7 +331,7 @@ public class ActionBarPopupWindow extends PopupWindow {
 
         @Override
         protected void onDraw(Canvas canvas) {
-            if (backgroundDrawable != null) {
+            /*if (backgroundDrawable != null) {
                 int start = gapStartY - scrollView.getScrollY();
                 int end = gapEndY - scrollView.getScrollY();
                 for (int a = 0; a < 2; a++) {
@@ -369,12 +369,12 @@ public class ActionBarPopupWindow extends PopupWindow {
                         canvas.restore();
                     }
                 }
-            }
+            }*/
         }
 
-        public Drawable getBackgroundDrawable() {
+        /*public Drawable getBackgroundDrawable() {
             return backgroundDrawable;
-        }
+        }*/
 
         public int getItemsCount() {
             return linearLayout.getChildCount();

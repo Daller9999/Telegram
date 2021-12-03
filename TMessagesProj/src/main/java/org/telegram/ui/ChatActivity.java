@@ -138,13 +138,14 @@ import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
-import org.telegram.ui.ActionBar.ractionview.ActionBarFullReactionsInfo;
+import org.telegram.ui.ActionBar.ractionview.PopupMainContainer;
+import org.telegram.ui.ActionBar.ractionview.views.ActionBarFullReactionsInfo;
 import org.telegram.ui.ActionBar.ActionBarLayout;
 import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.ActionBarMenuSubItem;
 import org.telegram.ui.ActionBar.ActionBarPopupWindow;
-import org.telegram.ui.ActionBar.ActionBarReactionsItem;
+import org.telegram.ui.ActionBar.ractionview.views.ActionBarReactionsItem;
 import org.telegram.ui.ActionBar.AdjustPanLayoutHelper;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BackDrawable;
@@ -19968,12 +19969,16 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
             Rect rect = new Rect();
 
-            ActionBarPopupWindow.ActionBarPopupWindowLayout popupLayout = new ActionBarPopupWindow.ActionBarPopupWindowLayout(getParentActivity(), R.drawable.popup_fixed_alert, themeDelegate);
+            ActionBarPopupWindow.ActionBarPopupWindowLayout popupLayout = new ActionBarPopupWindow.ActionBarPopupWindowLayout(
+                    getParentActivity(),
+                    R.drawable.background_reactions,
+                    themeDelegate
+            );
             popupLayout.setMinimumWidth(AndroidUtilities.dp(200 + (availableReactions.isEmpty() ? 0 : 30)));
             Rect backgroundPaddings = new Rect();
-            Drawable shadowDrawable = getParentActivity().getResources().getDrawable(R.drawable.popup_fixed_alert).mutate();
+            /*Drawable shadowDrawable = getParentActivity().getResources().getDrawable(R.drawable.popup_fixed_alert).mutate();
             shadowDrawable.getPadding(backgroundPaddings);
-            popupLayout.setBackgroundColor(getThemedColor(Theme.key_actionBarDefaultSubmenuBackground));
+            popupLayout.setBackgroundColor(getThemedColor(Theme.key_actionBarDefaultSubmenuBackground));*/
 
             LinearLayout scrimPopupContainerLayout = new LinearLayout(contentView.getContext()) {
                 @Override
@@ -19985,16 +19990,14 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
             };
 
-            FrameLayout scrimPopupFrameLayout = new FrameLayout(getParentActivity());
+            PopupMainContainer scrimPopupFrameLayout; //  = new FrameLayout(getParentActivity());
             ActionBarFullReactionsInfo actionBarFullReactionsInfo = new ActionBarFullReactionsInfo(getParentActivity(), () -> {
-                scrimPopupContainerLayout.setVisibility(View.VISIBLE);
             });
-            actionBarFullReactionsInfo.setVisibility(View.GONE);
             ReactionView reactionView = null;
             if (!availableReactions.isEmpty()) {
                 actionBarFullReactionsInfo.setMessage(message, this, dialog_id, availableReactions);
 
-                reactionView = new ReactionView(popupLayout.getContext(), themeDelegate);
+                /*reactionView = new ReactionView(popupLayout.getContext(), themeDelegate);
                 reactionView.setLayoutParams(LayoutHelper.createFrame(
                         300, 90,
                         Gravity.BOTTOM,
@@ -20004,7 +20007,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 reactionView.setOnReactionCallBack(reaction -> {
                     getSendMessagesHelper().sendReaction(message, reaction, this);
                     scrimPopupWindow.dismiss();
-                });
+                });*/
 
                 if (message.getReactions() != null) {
                     ActionBarReactionsItem actionBarReactionsItem = new ActionBarReactionsItem(getParentActivity(), themeDelegate);
@@ -20019,8 +20022,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     popupLayout.addView(view);
 
                     actionBarReactionsItem.setOnClickListener(rv -> {
-                        scrimPopupContainerLayout.setVisibility(View.GONE);
-                        actionBarFullReactionsInfo.setVisibility(View.VISIBLE);
                     });
                 }
             }
@@ -20087,7 +20088,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 scrimPopupContainerLayout.addView(reactionView);
             }
 
-            scrimPopupContainerLayout.setOnTouchListener(new View.OnTouchListener() {
+            /*scrimPopupContainerLayout.setOnTouchListener(new View.OnTouchListener() {
 
                 private int[] pos = new int[2];
 
@@ -20109,7 +20110,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                     return false;
                 }
-            });
+            });*/
             scrimPopupContainerLayout.setOrientation(LinearLayout.VERTICAL);
             boolean showMessageSeen = currentChat != null && message.isOutOwner() && message.isSent() && !message.isEditing() && !message.isSending() && !message.isSendError() && !message.isContentUnread() && !message.isUnread() && (ConnectionsManager.getInstance(currentAccount).getCurrentTime() - message.messageOwner.date < 7 * 86400) && (ChatObject.isMegagroup(currentChat) || !ChatObject.isChannel(currentChat)) && chatInfo != null && chatInfo.participants_count < 50 && !(message.messageOwner.action instanceof TLRPC.TL_messageActionChatJoinedByRequest);
             MessageSeenView messageSeenView = null;
@@ -20282,7 +20283,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 });
                 scrimPopupContainerLayout.addView(messageSeenLayout, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 60));
             }
-            scrimPopupContainerLayout.addView(popupLayout, LayoutHelper.createLinear(
+            scrimPopupContainerLayout.addView(popupLayout, LayoutHelper.createFrame(
                     LayoutHelper.MATCH_PARENT,
                     LayoutHelper.WRAP_CONTENT,
                     0,
@@ -20291,8 +20292,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     reactionView == null ? 0 : 30,
                     0
             ));
-            scrimPopupFrameLayout.addView(scrimPopupContainerLayout);
-
             actionBarFullReactionsInfo.setLayoutParams(LayoutHelper.createFrame(
                     250,
                     LayoutHelper.WRAP_CONTENT,
@@ -20302,8 +20301,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     30,
                     25
             ));
-            scrimPopupFrameLayout.addView(actionBarFullReactionsInfo);
-
+            scrimPopupFrameLayout = new PopupMainContainer(getParentActivity(), scrimPopupContainerLayout, actionBarFullReactionsInfo);
             scrimPopupFrameLayout.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
             scrimPopupWindow = new ActionBarPopupWindow(scrimPopupFrameLayout, LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT) {
                 @Override
@@ -20358,10 +20356,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             scrimPopupWindow.setClippingEnabled(true);
             scrimPopupWindow.setAnimationStyle(R.style.PopupContextAnimation);
             scrimPopupWindow.setFocusable(true);
-            actionBarFullReactionsInfo.measure(
+            /*actionBarFullReactionsInfo.measure(
                     View.MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(1000), View.MeasureSpec.AT_MOST),
                     View.MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(1000), View.MeasureSpec.AT_MOST)
-            );
+            );*/
             scrimPopupContainerLayout.measure(View.MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(1000), View.MeasureSpec.AT_MOST), View.MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(1000), View.MeasureSpec.AT_MOST));
             scrimPopupWindow.setInputMethodMode(ActionBarPopupWindow.INPUT_METHOD_NOT_NEEDED);
             scrimPopupWindow.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED);

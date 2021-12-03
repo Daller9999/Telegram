@@ -7,7 +7,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import org.telegram.ui.ActionBar.ractionview.ReactionView;
+import org.telegram.ui.ActionBar.ractionview.views.ReactionView;
 import org.telegram.ui.ActionBar.ractionview.data.TotalReaction;
 
 import java.util.ArrayList;
