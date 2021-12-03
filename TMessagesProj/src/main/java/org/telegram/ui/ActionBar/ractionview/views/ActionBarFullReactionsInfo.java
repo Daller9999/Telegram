@@ -60,10 +60,9 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
         void onBackPressed();
     }
 
-    public ActionBarFullReactionsInfo(@NonNull Context context, OnButtonBack onButtonBack) {
+    public ActionBarFullReactionsInfo(@NonNull Context context) {
         super(context);
         init();
-        this.onButtonBack = onButtonBack;
     }
 
     public void setOnButtonBack(OnButtonBack onButtonBack) {

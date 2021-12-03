@@ -1,4 +1,4 @@
-package org.telegram.ui.Components;
+package org.telegram.ui.ActionBar.ractionview.views;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -18,17 +18,18 @@ import androidx.annotation.RequiresApi;
 import org.telegram.messenger.ImageLocation;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
+import org.telegram.ui.Components.BackupImageView;
+import org.telegram.ui.Components.LayoutHelper;
 
 import java.util.ArrayList;
 
-public class ReactionView extends FrameLayout {
+public class ReactionSelectView extends FrameLayout {
 
 
     public interface OnReactionCallBack {
         void onReactionClicked(String reaction);
     }
 
-    private Theme.ResourcesProvider resourcesProvider;
     private final HorizontalScrollView horizontalScrollView = new HorizontalScrollView(getContext());
     private final LinearLayout layoutReactions = new LinearLayout(getContext());
     private View viewBack;
@@ -37,24 +38,23 @@ public class ReactionView extends FrameLayout {
     private final int defaultReactionSize = 35;
     private OnReactionCallBack onReactionCallBack;
 
-    public ReactionView(@NonNull Context context, Theme.ResourcesProvider resourcesProvider) {
+    public ReactionSelectView(@NonNull Context context) {
         super(context);
         init();
-        this.resourcesProvider = resourcesProvider;
     }
 
-    public ReactionView(@NonNull Context context, @Nullable AttributeSet attrs) {
+    public ReactionSelectView(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         init();
     }
 
-    public ReactionView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public ReactionSelectView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    public ReactionView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public ReactionSelectView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         init();
     }
@@ -105,7 +105,7 @@ public class ReactionView extends FrameLayout {
                 defaultHeight,
                 Gravity.BOTTOM | Gravity.TOP | Gravity.RIGHT,
                 0,
-                23,
+                20,
                 10,
                 22
         ));
@@ -124,7 +124,10 @@ public class ReactionView extends FrameLayout {
                     onReactionCallBack.onReactionClicked(reaction.reaction);
                 }
             });
-            imageView.setLayoutParams(LayoutHelper.createFrame(defaultReactionSize, defaultReactionSize, Gravity.LEFT | Gravity.TOP, 5f, 0f, 0f, 0f));
+            imageView.setLayoutParams(LayoutHelper.createFrame(
+                    defaultReactionSize, defaultReactionSize,
+                    Gravity.LEFT | Gravity.TOP,
+                    5f, 9f, 0f, 0f));
             layoutReactions.addView(imageView);
         }
     }
@@ -184,11 +187,6 @@ public class ReactionView extends FrameLayout {
         horizontalScrollView.addView(layoutReactions);
 
         addView(horizontalScrollView);
-    }
-
-    private int getThemedColor(String key) {
-        Integer color = resourcesProvider != null ? resourcesProvider.getColor(key) : null;
-        return color != null ? color : Theme.getColor(key);
     }
 }
 

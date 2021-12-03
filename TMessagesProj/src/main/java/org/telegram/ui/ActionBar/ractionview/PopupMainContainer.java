@@ -1,17 +1,13 @@
 package org.telegram.ui.ActionBar.ractionview;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Gravity;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
@@ -19,30 +15,60 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.R;
-import org.telegram.ui.ActionBar.Theme;
+import org.telegram.messenger.SendMessagesHelper;
+import org.telegram.tgnet.TLRPC;
+import org.telegram.ui.ActionBar.ActionBarPopupWindow;
 import org.telegram.ui.ActionBar.ractionview.views.ActionBarFullReactionsInfo;
+import org.telegram.ui.ActionBar.ractionview.views.ActionBarReactionsItem;
+import org.telegram.ui.ActionBar.ractionview.views.ReactionsListView;
+import org.telegram.ui.ChatActivity;
 import org.telegram.ui.Components.LayoutHelper;
+import org.telegram.ui.ActionBar.ractionview.views.ReactionSelectView;
+
+import java.util.ArrayList;
 
 public class PopupMainContainer extends FrameLayout {
 
-    private static final int width = 250;
+    private static final int width = 260;
     private int minHeight = 300;
     private int maxHeight = 400;
+    private int defH;
+    private int defW;
 
     private LinearLayout scrimPopupContainerLayout;
     private ActionBarFullReactionsInfo actionBarFullReactionsInfo;
-    long lastMove = 0;
+    private ActionBarReactionsItem actionBarReactionsItem;
+    private ArrayList<TLRPC.TL_availableReaction> availableReactions;
+    private ReactionSelectView reactionSelectView = null;
+    private MessageObject messageObject;
+    private SendMessagesHelper sendMessagesHelper;
+    private ChatActivity chatActivity;
+    private ActionBarPopupWindow actionBarPopupWindow;
 
     public PopupMainContainer(
             @NonNull Context context,
+            MessageObject messageObject,
+            ChatActivity chatActivity,
             LinearLayout scrimPopupContainerLayout,
-            ActionBarFullReactionsInfo actionBarFullReactionsInfo
+            ActionBarFullReactionsInfo actionBarFullReactionsInfo,
+            ActionBarReactionsItem actionBarReactionsItem,
+            ArrayList<TLRPC.TL_availableReaction> availableReactions
     ) {
         super(context);
+        this.messageObject = messageObject;
+        this.chatActivity = chatActivity;
+        sendMessagesHelper = chatActivity.getSendMessagesHelper();
         this.scrimPopupContainerLayout = scrimPopupContainerLayout;
         this.actionBarFullReactionsInfo = actionBarFullReactionsInfo;
+        this.actionBarReactionsItem = actionBarReactionsItem;
+        this.availableReactions = availableReactions;
         init();
+    }
+
+    public void setActionBarPopupWindow(ActionBarPopupWindow actionBarPopupWindow) {
+        this.actionBarPopupWindow = actionBarPopupWindow;
     }
 
     public PopupMainContainer(@NonNull Context context, @Nullable AttributeSet attrs) {
@@ -64,89 +90,67 @@ public class PopupMainContainer extends FrameLayout {
         Rect backgroundPaddings = new Rect();
         shadowDrawable.getPadding(backgroundPaddings);
 
-        View viewBack = new View(getContext());
-        viewBack.setBackground(shadowDrawable);
-        addView(viewBack);
+        reactionSelectView = null;
+        if (!availableReactions.isEmpty()) {
+            reactionSelectView = new ReactionSelectView(getContext());
+            reactionSelectView.setLayoutParams(LayoutHelper.createFrame(
+                    width + 40, LayoutHelper.WRAP_CONTENT,
+                    Gravity.TOP | Gravity.LEFT,
+                    0, 0, 0, 0
+            ));
+            reactionSelectView.setReactions(availableReactions);
+            addView(reactionSelectView);
+            reactionSelectView.setOnReactionCallBack(reaction -> {
+                sendMessagesHelper.sendReaction(messageObject, reaction, chatActivity);
+                actionBarPopupWindow.dismiss();
+            });
+        }
+        int margin = reactionSelectView == null ? 0 : 80;
+        int length = 0;
 
-        scrimPopupContainerLayout.setLayoutParams(LayoutHelper.createFrame(
-                width, LayoutHelper.WRAP_CONTENT
-        ));
         addView(scrimPopupContainerLayout);
-
-        LinearLayout linearLayout = new LinearLayout(getContext());
-        linearLayout.setLayoutParams(LayoutHelper.createFrame(
-                width, FrameLayout.LayoutParams.MATCH_PARENT,
-                Gravity.TOP | Gravity.LEFT,
-                0, 0, 0, 0
-        ));
-        linearLayout.setOrientation(LinearLayout.HORIZONTAL);
-        linearLayout.setHorizontalScrollBarEnabled(false);
-
-
-        View viewEmpty = new View(getContext());
-        viewEmpty.setLayoutParams(LayoutHelper.createLinear(width, maxHeight));
-        linearLayout.addView(viewEmpty);
-
-        actionBarFullReactionsInfo.setLayoutParams(LayoutHelper.createLinear(width, maxHeight));
-        linearLayout.addView(actionBarFullReactionsInfo);
-
-        HorizontalScrollView horizontalScrollView = new HorizontalScrollView(getContext());
-        horizontalScrollView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
-        horizontalScrollView.setHorizontalScrollBarEnabled(false);
-        /*horizontalScrollView.getViewTreeObserver().addOnScrollChangedListener(() -> {
-            if (System.currentTimeMillis() - lastMove > 50) {
-                float percent = (float) horizontalScrollView.getScrollX() / (float) AndroidUtilities.dp(width);
-                if (percent < 0) percent = 0;
-                setLayoutParams(LayoutHelper.createFrame(
-                        width, (int) (minHeight + (maxHeight - minHeight) * percent),
-                        Gravity.TOP,
-                        0, 0, 0, 0
-                ));
-                viewBack.setLayoutParams(LayoutHelper.createFrame(
-                        width, minHeight + (maxHeight - minHeight) * percent,
-                        Gravity.TOP,
-                        0, 0, 0, 0
-                ));
-                linearLayout.setLayoutParams(LayoutHelper.createFrame(
-                        width, minHeight + (maxHeight - minHeight) * percent,
-                        Gravity.TOP,
-                        0, 0, 0, 0
-                ));
-                actionBarFullReactionsInfo.setLayoutParams(LayoutHelper.createLinear(
-                        width, (int) (minHeight + (maxHeight - minHeight) * percent),
-                        Gravity.TOP,
-                        0, 0, 0, 0
-                ));
-                lastMove = System.currentTimeMillis();
-            }
-        });*/
-        horizontalScrollView.setLayoutParams(LayoutHelper.createFrame(
-                width, FrameLayout.LayoutParams.WRAP_CONTENT,
+        scrimPopupContainerLayout.setLayoutParams(LayoutHelper.createFrame(
+                width + length, LayoutHelper.WRAP_CONTENT,
                 Gravity.TOP,
-                0, 0, 0, 0
+                0, margin, 0, 0
         ));
-        horizontalScrollView.addView(linearLayout);
-        addView(horizontalScrollView);
-
-        viewBack.setLayoutParams(LayoutHelper.createFrame(
-                width, scrimPopupContainerLayout.getHeight(),
+        addView(actionBarFullReactionsInfo);
+        actionBarFullReactionsInfo.setVisibility(GONE);
+        actionBarFullReactionsInfo.setLayoutParams(LayoutHelper.createFrame(
+                width + length, 300,
                 Gravity.TOP,
-                0, 0, 0, 0
+                0, margin, 0, 0
         ));
-        linearLayout.setLayoutParams(LayoutHelper.createFrame(
-                width, minHeight,
-                Gravity.TOP,
-                0, 0, 0, 0
-        ));
-
         actionBarFullReactionsInfo.setOnButtonBack(() -> {
-            horizontalScrollView.smoothScrollTo(0, 0);
+            scrimPopupContainerLayout.setVisibility(View.VISIBLE);
+            actionBarFullReactionsInfo.setVisibility(View.GONE);
+            if (reactionSelectView != null) {
+                reactionSelectView.setVisibility(View.VISIBLE);
+            }
         });
 
+        if (actionBarReactionsItem != null) {
+            actionBarReactionsItem.setOnClickListener(v -> {
+                scrimPopupContainerLayout.setVisibility(View.GONE);
+                actionBarFullReactionsInfo.setVisibility(View.VISIBLE);
+                if (reactionSelectView != null) {
+                    reactionSelectView.setVisibility(View.GONE);
+                }
+            });
+        }
+
         AndroidUtilities.runOnUIThread(() -> {
-            viewBack.setLayoutParams(new FrameLayout.LayoutParams(
-                    AndroidUtilities.dp(width), scrimPopupContainerLayout.getMeasuredHeight()
-            ));
-        }, 50);
+            defH = scrimPopupContainerLayout.getMeasuredHeight();
+            defW = scrimPopupContainerLayout.getMeasuredWidth();
+            actionBarFullReactionsInfo.setLayoutParams(createFrame(AndroidUtilities.dp(width + length), AndroidUtilities.dp(400), margin));
+        }, 100);
+    }
+
+    private FrameLayout.LayoutParams createFrame(int width, int height, int topMargin) {
+        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(width, height);
+        layoutParams.gravity = Gravity.TOP | Gravity.LEFT;
+        layoutParams.topMargin = 220;
+        layoutParams.leftMargin = 0;
+        return layoutParams;
     }
 }

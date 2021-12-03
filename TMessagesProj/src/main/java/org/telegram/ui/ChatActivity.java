@@ -217,7 +217,7 @@ import org.telegram.ui.Components.PipRoundVideoView;
 import org.telegram.ui.Components.PollVotesAlert;
 import org.telegram.ui.Components.RLottieDrawable;
 import org.telegram.ui.Components.RadialProgressView;
-import org.telegram.ui.Components.ReactionView;
+import org.telegram.ui.ActionBar.ractionview.views.ReactionSelectView;
 import org.telegram.ui.Components.RecyclerAnimationScrollHelper;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.ReportAlert;
@@ -19409,7 +19409,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         return caption;
     }
 
-    private ReactionView reactionView;
+    private ReactionSelectView reactionSelectView;
 
     private void createMenu(View v, boolean single, boolean listView, float x, float y, boolean searchGroup) {
         if (actionBar.isActionModeShowed() || reportType >= 0) {
@@ -19971,15 +19971,16 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
             ActionBarPopupWindow.ActionBarPopupWindowLayout popupLayout = new ActionBarPopupWindow.ActionBarPopupWindowLayout(
                     getParentActivity(),
-                    R.drawable.background_reactions,
+                    R.drawable.popup_fixed_alert,
                     themeDelegate
             );
             popupLayout.setMinimumWidth(AndroidUtilities.dp(200 + (availableReactions.isEmpty() ? 0 : 30)));
             Rect backgroundPaddings = new Rect();
-            /*Drawable shadowDrawable = getParentActivity().getResources().getDrawable(R.drawable.popup_fixed_alert).mutate();
+            Drawable shadowDrawable = getParentActivity().getResources().getDrawable(R.drawable.popup_fixed_alert).mutate();
             shadowDrawable.getPadding(backgroundPaddings);
-            popupLayout.setBackgroundColor(getThemedColor(Theme.key_actionBarDefaultSubmenuBackground));*/
+            popupLayout.setBackgroundColor(getThemedColor(Theme.key_actionBarDefaultSubmenuBackground));
 
+            ActionBarReactionsItem actionBarReactionsItem = null;
             LinearLayout scrimPopupContainerLayout = new LinearLayout(contentView.getContext()) {
                 @Override
                 public boolean dispatchKeyEvent(KeyEvent event) {
@@ -19990,27 +19991,14 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
             };
 
-            PopupMainContainer scrimPopupFrameLayout; //  = new FrameLayout(getParentActivity());
-            ActionBarFullReactionsInfo actionBarFullReactionsInfo = new ActionBarFullReactionsInfo(getParentActivity(), () -> {
-            });
-            ReactionView reactionView = null;
+            PopupMainContainer scrimPopupFrameLayout;
+            ActionBarFullReactionsInfo actionBarFullReactionsInfo = new ActionBarFullReactionsInfo(getParentActivity());
+            ReactionSelectView reactionSelectView = null;
             if (!availableReactions.isEmpty()) {
                 actionBarFullReactionsInfo.setMessage(message, this, dialog_id, availableReactions);
 
-                /*reactionView = new ReactionView(popupLayout.getContext(), themeDelegate);
-                reactionView.setLayoutParams(LayoutHelper.createFrame(
-                        300, 90,
-                        Gravity.BOTTOM,
-                        0f, 0f, 0f, -15f
-                ));
-                reactionView.setReactions(availableReactions);
-                reactionView.setOnReactionCallBack(reaction -> {
-                    getSendMessagesHelper().sendReaction(message, reaction, this);
-                    scrimPopupWindow.dismiss();
-                });*/
-
                 if (message.getReactions() != null) {
-                    ActionBarReactionsItem actionBarReactionsItem = new ActionBarReactionsItem(getParentActivity(), themeDelegate);
+                    actionBarReactionsItem = new ActionBarReactionsItem(getParentActivity(), themeDelegate);
                     actionBarReactionsItem.setTextAndIcon("Reactions", R.drawable.actions_reactions);
                     actionBarReactionsItem.setItemHeight(56);
                     actionBarReactionsItem.setMessage(message, this, dialog_id);
@@ -20020,9 +20008,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     view.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 10));
                     view.setBackgroundColor(getThemedColor(Theme.key_dialogBackgroundGray));
                     popupLayout.addView(view);
-
-                    actionBarReactionsItem.setOnClickListener(rv -> {
-                    });
                 }
             }
 
@@ -20058,7 +20043,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     layoutParams.height = AndroidUtilities.dp(6);
                     gap.setLayoutParams(layoutParams);
                 }
-                ActionBarMenuSubItem cell = new ActionBarMenuSubItem(getParentActivity(), a == 0 && reactionView == null, a == N - 1, themeDelegate);
+                ActionBarMenuSubItem cell = new ActionBarMenuSubItem(getParentActivity(), a == 0 && reactionSelectView == null, a == N - 1, themeDelegate);
                 cell.setMinimumWidth(AndroidUtilities.dp(200));
                 cell.setTextAndIcon(items.get(a), icons.get(a));
                 Integer option = options.get(a);
@@ -20083,11 +20068,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                 });
             }
-            if (reactionView != null) {
-                scrimPopupContainerLayout.removeView(reactionView);
-                scrimPopupContainerLayout.addView(reactionView);
-            }
-
             scrimPopupContainerLayout.setOnTouchListener(new View.OnTouchListener() {
 
                 private int[] pos = new int[2];
@@ -20289,7 +20269,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     0,
                     0,
                     showMessageSeen ? -8 : 0,
-                    reactionView == null ? 0 : 30,
+                    0,
                     0
             ));
             actionBarFullReactionsInfo.setLayoutParams(LayoutHelper.createFrame(
@@ -20301,7 +20281,15 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     30,
                     25
             ));
-            scrimPopupFrameLayout = new PopupMainContainer(getParentActivity(), scrimPopupContainerLayout, actionBarFullReactionsInfo);
+            scrimPopupFrameLayout = new PopupMainContainer(
+                    getParentActivity(),
+                    message,
+                    this,
+                    scrimPopupContainerLayout,
+                    actionBarFullReactionsInfo,
+                    actionBarReactionsItem,
+                    availableReactions
+            );
             scrimPopupFrameLayout.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
             scrimPopupWindow = new ActionBarPopupWindow(scrimPopupFrameLayout, LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT) {
                 @Override
@@ -20350,6 +20338,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                 }
             };
+            scrimPopupFrameLayout.setActionBarPopupWindow(scrimPopupWindow);
             scrimPopupWindow.setPauseNotifications(true);
             scrimPopupWindow.setDismissAnimationDuration(220);
             scrimPopupWindow.setOutsideTouchable(true);
