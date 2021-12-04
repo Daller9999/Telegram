@@ -5994,11 +5994,14 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                             maxButtonsWidth = Math.max(maxButtonsWidth, botButton.x + botButton.width);
                         }
                         j++;
-                        if (b == 0) {
-                            // i++;
-                        } else if (b % 4 == 0) {
-                            i++;
-                            j = 0;
+                        if (b % 4 == 0) {
+                            if (b == 0) {
+                                i = 0;
+                                j = 1;
+                            } else {
+                                i++;
+                                j = 0;
+                            }
                         }
                     }
                 }
