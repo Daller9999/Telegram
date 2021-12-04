@@ -79,8 +79,8 @@ public class ReactionSelectView extends FrameLayout {
             widthBack = 100;
             widthHorizontal = 80;
         } else {
-            widthBack = (int) (43 * 7);
-            widthHorizontal = (int) (40 * 7);
+            widthBack = 43 * 7;
+            widthHorizontal = 40 * 7;
         }
         viewBack.setLayoutParams(LayoutHelper.createFrame(
                 widthBack - 2,
