@@ -98,6 +98,7 @@ import androidx.recyclerview.widget.LinearSmoothScrollerCustom;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
+import com.google.android.exoplayer2.util.Log;
 
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.AccountInstance;
@@ -19994,7 +19995,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             PopupMainContainer scrimPopupFrameLayout;
             ActionBarFullReactionsInfo actionBarFullReactionsInfo = new ActionBarFullReactionsInfo(getParentActivity(), themeDelegate);
             ReactionSelectView reactionSelectView = null;
-            if (!availableReactions.isEmpty()) {
+
+            boolean isChannel = ChatObject.isChannel(currentChat) && !currentChat.megagroup;
+            if (!availableReactions.isEmpty() && !isChannel) {
                 actionBarFullReactionsInfo.setMessage(message, this, dialog_id, availableReactions);
 
                 if (message.getReactions() != null) {
