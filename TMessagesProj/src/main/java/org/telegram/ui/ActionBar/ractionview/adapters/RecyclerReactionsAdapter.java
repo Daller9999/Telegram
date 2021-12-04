@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ractionview.views.ReactionsListView;
 import org.telegram.ui.ActionBar.ractionview.data.UserReaction;
 
@@ -15,11 +16,16 @@ import java.util.ArrayList;
 public class RecyclerReactionsAdapter extends RecyclerView.Adapter<RecyclerReactionsAdapter.ReactionHolder> {
 
     private final ArrayList<ArrayList<UserReaction>> list = new ArrayList<>();
+    private Theme.ResourcesProvider resourcesProvider;
+
+    public RecyclerReactionsAdapter(Theme.ResourcesProvider resourcesProvider) {
+        this.resourcesProvider = resourcesProvider;
+    }
 
     @NonNull
     @Override
     public ReactionHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        ReactionsListView reactionsListView = new ReactionsListView(parent.getContext());
+        ReactionsListView reactionsListView = new ReactionsListView(parent.getContext(), resourcesProvider);
         reactionsListView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         return new ReactionHolder(reactionsListView);
     }

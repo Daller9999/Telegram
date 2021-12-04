@@ -19992,7 +19992,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             };
 
             PopupMainContainer scrimPopupFrameLayout;
-            ActionBarFullReactionsInfo actionBarFullReactionsInfo = new ActionBarFullReactionsInfo(getParentActivity());
+            ActionBarFullReactionsInfo actionBarFullReactionsInfo = new ActionBarFullReactionsInfo(getParentActivity(), themeDelegate);
             ReactionSelectView reactionSelectView = null;
             if (!availableReactions.isEmpty()) {
                 actionBarFullReactionsInfo.setMessage(message, this, dialog_id, availableReactions);

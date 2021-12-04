@@ -16,6 +16,7 @@ import androidx.annotation.RequiresApi;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ImageLocation;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ractionview.data.UserReaction;
 import org.telegram.ui.Components.AvatarDrawable;
 import org.telegram.ui.Components.BackupImageView;
@@ -24,11 +25,17 @@ import org.telegram.ui.Components.LayoutHelper;
 public class UserReactionView extends FrameLayout {
 
     private UserReaction userReaction;
+    private Theme.ResourcesProvider resourcesProvider;
 
-    public UserReactionView(@NonNull Context context, UserReaction userReaction) {
+    public UserReactionView(
+            @NonNull Context context,
+            UserReaction userReaction,
+            Theme.ResourcesProvider resourcesProvider
+    ) {
         super(context);
         this.userReaction = userReaction;
         init();
+        this.resourcesProvider = resourcesProvider;
     }
 
     public UserReactionView(@NonNull Context context, @Nullable AttributeSet attrs) {
@@ -61,9 +68,9 @@ public class UserReactionView extends FrameLayout {
         textView.setLayoutParams(LayoutHelper.createFrame(
                 LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT,
                 Gravity.LEFT | Gravity.CENTER_VERTICAL,
-                60, 0, 0, 0
+                63, 0, 0, 0
         ));
-        textView.setTextColor(Color.BLACK);
+        textView.setTextColor(getThemedColor(Theme.key_actionBarDefaultSubmenuItem));
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
         String text = "";
         if (userReaction.userChat instanceof TLRPC.User) {
@@ -100,5 +107,10 @@ public class UserReactionView extends FrameLayout {
             return "";
         }
         return string;
+    }
+
+    private int getThemedColor(String key) {
+        Integer color = resourcesProvider != null ? resourcesProvider.getColor(key) : null;
+        return color != null ? color : Theme.getColor(key);
     }
 }

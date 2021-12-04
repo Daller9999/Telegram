@@ -10,6 +10,7 @@ import android.widget.ScrollView;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ractionview.data.UserReaction;
 import org.telegram.ui.Components.LayoutHelper;
 
@@ -18,14 +19,16 @@ import java.util.ArrayList;
 public class ReactionsListView extends ScrollView {
 
     private LinearLayout linearLayout;
+    private Theme.ResourcesProvider resourcesProvider;
 
-    public ReactionsListView(Context context) {
+    public ReactionsListView(Context context, Theme.ResourcesProvider resourcesProvider) {
         super(context);
         setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         linearLayout = new LinearLayout(getContext());
         linearLayout.setOrientation(LinearLayout.VERTICAL);
         linearLayout.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         addView(linearLayout);
+        this.resourcesProvider = resourcesProvider;
     }
 
     public ReactionsListView(Context context, @Nullable AttributeSet attrs) {
@@ -47,7 +50,7 @@ public class ReactionsListView extends ScrollView {
         linearLayout.removeAllViews();
         UserReactionView userReactionView;
         for (UserReaction userReaction : userReactions) {
-            userReactionView = new UserReactionView(getContext(), userReaction);
+            userReactionView = new UserReactionView(getContext(), userReaction, resourcesProvider);
             userReactionView.setLayoutParams(LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 50));
             linearLayout.addView(userReactionView);
         }

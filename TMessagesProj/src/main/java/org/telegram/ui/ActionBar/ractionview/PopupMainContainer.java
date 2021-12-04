@@ -32,10 +32,6 @@ import java.util.ArrayList;
 public class PopupMainContainer extends FrameLayout {
 
     private static final int width = 260;
-    private int minHeight = 300;
-    private int maxHeight = 400;
-    private int defH;
-    private int defW;
 
     private LinearLayout scrimPopupContainerLayout;
     private ActionBarFullReactionsInfo actionBarFullReactionsInfo;
@@ -117,15 +113,28 @@ public class PopupMainContainer extends FrameLayout {
         addView(actionBarFullReactionsInfo);
         actionBarFullReactionsInfo.setVisibility(GONE);
         actionBarFullReactionsInfo.setLayoutParams(LayoutHelper.createFrame(
-                width + length, 300,
-                Gravity.TOP,
-                0, margin, 0, 0
+                width + length, 400,
+                Gravity.TOP | Gravity.LEFT,
+                0, 80, 0, 0
         ));
-        actionBarFullReactionsInfo.setOnButtonBack(() -> {
-            scrimPopupContainerLayout.setVisibility(View.VISIBLE);
-            actionBarFullReactionsInfo.setVisibility(View.GONE);
-            if (reactionSelectView != null) {
-                reactionSelectView.setVisibility(View.VISIBLE);
+        actionBarFullReactionsInfo.setOnButtonBack(new ActionBarFullReactionsInfo.OnButtonBack() {
+            @Override
+            public void onBackPressed() {
+                scrimPopupContainerLayout.setVisibility(View.VISIBLE);
+                actionBarFullReactionsInfo.setVisibility(View.GONE);
+                if (reactionSelectView != null) {
+                    reactionSelectView.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onDataLoaded(int count) {
+                int size = Math.min(count * 50 + (count <= 2 ? 80 : 120), 400);
+                actionBarFullReactionsInfo.setLayoutParams(LayoutHelper.createFrame(
+                        width + length, size,
+                        Gravity.TOP | Gravity.LEFT,
+                        0, 80, 0, 0
+                ));
             }
         });
 
@@ -138,19 +147,5 @@ public class PopupMainContainer extends FrameLayout {
                 }
             });
         }
-
-        AndroidUtilities.runOnUIThread(() -> {
-            defH = scrimPopupContainerLayout.getMeasuredHeight();
-            defW = scrimPopupContainerLayout.getMeasuredWidth();
-            actionBarFullReactionsInfo.setLayoutParams(createFrame(AndroidUtilities.dp(width + length), AndroidUtilities.dp(400), margin));
-        }, 100);
-    }
-
-    private FrameLayout.LayoutParams createFrame(int width, int height, int topMargin) {
-        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(width, height);
-        layoutParams.gravity = Gravity.TOP | Gravity.LEFT;
-        layoutParams.topMargin = 220;
-        layoutParams.leftMargin = 0;
-        return layoutParams;
     }
 }

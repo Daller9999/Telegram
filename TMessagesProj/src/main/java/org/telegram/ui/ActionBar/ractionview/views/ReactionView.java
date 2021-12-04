@@ -100,7 +100,7 @@ public class ReactionView extends FrameLayout {
         textView.setLayoutParams(LayoutHelper.createFrame(
                 LayoutHelper.WRAP_CONTENT, 20,
                 Gravity.TOP | Gravity.LEFT | Gravity.RIGHT,
-                margin + marginText, 5, 10, 0
+                margin + marginText, 5, 12, 0
         ));
         textView.setTextColor(Color.parseColor("#368dd0"));
         addView(textView);

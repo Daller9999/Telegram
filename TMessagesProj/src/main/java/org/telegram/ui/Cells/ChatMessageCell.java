@@ -5855,7 +5855,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 botButtonsByPosition.clear();
                 botButtonsLayout = null;
             }
-            if (!messageObject.isRestrictedMessage && currentPosition == null && (messageObject.messageOwner.reply_markup instanceof TLRPC.TL_replyInlineMarkup || messageObject.messageOwner.reactions != null && !messageObject.messageOwner.reactions.results.isEmpty())) {
+            if (isChat && !messageObject.isRestrictedMessage && currentPosition == null && (messageObject.messageOwner.reply_markup instanceof TLRPC.TL_replyInlineMarkup || messageObject.messageOwner.reactions != null && !messageObject.messageOwner.reactions.results.isEmpty())) {
                 int rows;
 
                 if (messageObject.messageOwner.reply_markup instanceof TLRPC.TL_replyInlineMarkup) {
@@ -5937,7 +5937,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     }
                 } else {
                     int buttonsCount = messageObject.messageOwner.reactions.results.size();
-                    int buttonWidth = AndroidUtilities.dp(70);
+                    int buttonWidth;
                     int buttonHeight = AndroidUtilities.dp(23);
                     int i = 0;
                     int j = 0;
@@ -9578,7 +9578,20 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             signString = null;
         }
         String timeString;
+        String reactionsString = "";
         TLRPC.User author = null;
+
+        currentTimeString = "";
+        if (!isChat) {
+            TLRPC.TL_messageReactions reactions = currentMessageObject.getReactions();
+            if (reactions != null && reactions.results != null && !reactions.results.isEmpty()) {
+                for (TLRPC.TL_reactionCount results : reactions.results) {
+                    reactionsString += results.reaction + " ";
+                }
+            }
+            currentTimeString = reactionsString;
+        }
+
         if (currentMessageObject.isFromUser()) {
             author = MessagesController.getInstance(currentAccount).getUser(fromId);
         }
@@ -9609,12 +9622,12 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
         if (signString != null) {
             if (messageObject.messageOwner.fwd_from != null && messageObject.messageOwner.fwd_from.imported) {
-                currentTimeString = " " + timeString;
+                currentTimeString += " " + timeString;
             } else {
-                currentTimeString = ", " + timeString;
+                currentTimeString += ", " + timeString;
             }
         } else {
-            currentTimeString = timeString;
+            currentTimeString += timeString;
         }
         timeTextWidth = timeWidth = (int) Math.ceil(Theme.chat_timePaint.measureText(currentTimeString));
         if (currentMessageObject.scheduled && currentMessageObject.messageOwner.date == 0x7FFFFFFE) {

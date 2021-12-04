@@ -12,6 +12,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -55,14 +56,20 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
     private RecyclerReactionsAdapter adapter;
     private RecyclerReactionsItemsAdapter reactionsItemsAdapter;
     private long lastTimeClick = 0;
+    private Theme.ResourcesProvider resourcesProvider;
+    private int maxSize;
+    private View viewDivide;
+    private View viewDivideGray;
 
     public interface OnButtonBack {
         void onBackPressed();
+        void onDataLoaded(int count);
     }
 
-    public ActionBarFullReactionsInfo(@NonNull Context context) {
+    public ActionBarFullReactionsInfo(@NonNull Context context, Theme.ResourcesProvider resourcesProvider) {
         super(context);
         init();
+        this.resourcesProvider = resourcesProvider;
     }
 
     public void setOnButtonBack(OnButtonBack onButtonBack) {
@@ -91,27 +98,36 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
         shadowDrawable.getPadding(backgroundPaddings);
         setBackground(shadowDrawable);
 
+        int color = getThemedColor(Theme.key_actionBarDefaultSubmenuItemIcon);
         Button buttonBack = new Button(getContext());
         Drawable drawable = ContextCompat.getDrawable(getContext(), R.drawable.ic_ab_back);
-        drawable.setColorFilter(Color.BLACK, PorterDuff.Mode.MULTIPLY);
+        drawable.setColorFilter(color, PorterDuff.Mode.MULTIPLY);
         buttonBack.setBackground(drawable);
         buttonBack.setLayoutParams(LayoutHelper.createFrame(
-                30, 30,
+                27, 27,
                 Gravity.TOP | Gravity.LEFT,
-                10, 10, 0, 0
+                12, 12, 0, 0
         ));
         addView(buttonBack);
 
         TextView textView = new TextView(getContext());
         textView.setText("Back");
-        textView.setTextColor(Color.BLACK);
+        textView.setTextColor(getThemedColor(Theme.key_actionBarDefaultSubmenuItem));
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
         textView.setLayoutParams(LayoutHelper.createFrame(
                 LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT,
                 Gravity.TOP | Gravity.LEFT,
-                50, 10, 0, 0
+                58, 12, 0, 0
         ));
         addView(textView);
+
+        LinearLayout linearLayout = new LinearLayout(getContext());
+        linearLayout.setLayoutParams(LayoutHelper.createFrame(
+                LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT,
+                Gravity.TOP,
+                0, 50, 0, 0
+        ));
+        linearLayout.setOrientation(LinearLayout.VERTICAL);
 
         View viewBack = new View(getContext());
         viewBack.setLayoutParams(LayoutHelper.createFrame(
@@ -137,21 +153,33 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
         recyclerViewReactions.setLayoutParams(LayoutHelper.createFrame(
                 LayoutHelper.MATCH_PARENT, 50,
                 Gravity.TOP,
-                0, 50, 0, 0
+                0, 0, 0, 0
         ));
         recyclerViewReactions.setHorizontalScrollBarEnabled(false);
-        addView(recyclerViewReactions);
+        linearLayout.addView(recyclerViewReactions);
 
-        View view = new View(getContext());
-        view.setBackgroundColor(Color.GRAY);
-        view.setLayoutParams(LayoutHelper.createFrame(
+        viewDivide = new View(getContext());
+        viewDivide.setBackgroundColor(color);
+        viewDivide.setLayoutParams(LayoutHelper.createFrame(
                 LayoutHelper.MATCH_PARENT, 1,
                 Gravity.TOP | Gravity.LEFT,
-                0, 91, 0, 0
+                0, 0, 0, 0
         ));
-        addView(view);
+        linearLayout.addView(viewDivide);
 
-        adapter = new RecyclerReactionsAdapter();
+        viewDivideGray = new View(getContext());
+        viewDivideGray.setBackgroundColor(color);
+        viewDivideGray.setLayoutParams(LayoutHelper.createFrame(
+                LayoutHelper.MATCH_PARENT, 1,
+                Gravity.TOP | Gravity.LEFT,
+                0, 0, 0, 0
+        ));
+        viewDivideGray.setVisibility(View.GONE);
+        viewDivideGray.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 10));
+        viewDivideGray.setBackgroundColor(getThemedColor(Theme.key_dialogBackgroundGray));
+        linearLayout.addView(viewDivideGray);
+
+        adapter = new RecyclerReactionsAdapter(resourcesProvider);
         recyclerView = new RecyclerView(getContext());
         recyclerView.setNestedScrollingEnabled(false);
         recyclerView.setAdapter(adapter);
@@ -162,11 +190,13 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
         recyclerView.setLayoutParams(LayoutHelper.createFrame(
                 LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT,
                 Gravity.TOP,
-                0, 92, 0, 0
+                0, 0, 0, 0
         ));
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
+                if (recyclerViewReactions.getVisibility() == View.GONE) return;
+
                 LinearLayoutManager linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
                 int pos = linearLayoutManager.findFirstVisibleItemPosition();
                 if (System.currentTimeMillis() - lastTimeClick > 500) {
@@ -177,7 +207,8 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
         });
         SnapHelper snapHelper = new LinearSnapHelper();
         snapHelper.attachToRecyclerView(recyclerView);
-        addView(recyclerView);
+        linearLayout.addView(recyclerView);
+        addView(linearLayout);
     }
 
     public void setMessage(
@@ -209,7 +240,6 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
     }
 
     private void updateList(TLRPC.TL_messageReactions reactions, TLRPC.TL_messages_messageReactionsList list) {
-        int i = 0;
         ArrayList<TotalReaction> totalReactions = new ArrayList<>();
         totalReactions.add(getAllReactionView(reactions));
         ArrayList<TLRPC.TL_availableReaction> currentReaction = new ArrayList<>();
@@ -224,9 +254,14 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
                     totalReactions.add(totalReaction);
                 }
             }
-            i++;
         }
-        reactionsItemsAdapter.submitList(totalReactions);
+        if (totalReactions.size() <= 2) {
+            viewDivide.setVisibility(View.GONE);
+            viewDivideGray.setVisibility(View.VISIBLE);
+            recyclerViewReactions.setVisibility(View.GONE);
+        } else {
+            reactionsItemsAdapter.submitList(totalReactions);
+        }
 
         ArrayList<UserReaction> userReactions = new ArrayList<>();
         for (TLRPC.TL_messageUserReaction userReaction : list.reactions) {
@@ -244,13 +279,19 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
         ArrayList<ArrayList<UserReaction>> userReactionList = new ArrayList<>();
         userReactionList.add(userReactions);
 
+        maxSize = 0;
+        ArrayList<UserReaction> arrayList;
         for (TLRPC.TL_availableReaction reaction : currentReaction) {
-            userReactionList.add(hashMap.get(reaction));
+            arrayList = hashMap.get(reaction);
+            if (arrayList.size() > maxSize) {
+                maxSize = arrayList.size();
+            }
+            userReactionList.add(arrayList);
+        }
+        if (onButtonBack != null) {
+            onButtonBack.onDataLoaded(maxSize);
         }
         adapter.submitList(userReactionList);
-
-        int size = Math.min(userReactions.size(), 7);
-        // setLayoutParams(LayoutHelper.createLinear(250, 80 + 50 * size));
     }
 
     private TotalReaction getAllReactionView(TLRPC.TL_messageReactions reactions) {
@@ -278,5 +319,10 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
         TLRPC.Chat chat = messagesController.getChat(id);
         TLRPC.User user = messagesController.getUser(id);
         return chat == null ? user : chat;
+    }
+
+    private int getThemedColor(String key) {
+        Integer color = resourcesProvider != null ? resourcesProvider.getColor(key) : null;
+        return color != null ? color : Theme.getColor(key);
     }
 }
