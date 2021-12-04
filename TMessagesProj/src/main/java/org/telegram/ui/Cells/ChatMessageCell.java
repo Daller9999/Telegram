@@ -5937,7 +5937,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     }
                 } else {
                     int buttonsCount = messageObject.messageOwner.reactions.results.size();
-                    int buttonWidth = (widthForButtons - AndroidUtilities.dp(5) * (buttonsCount - 1) - AndroidUtilities.dp(2)) / buttonsCount;
+                    int buttonWidth = AndroidUtilities.dp(50); //widthForButtons - AndroidUtilities.dp(5) * (buttonsCount - 1) - AndroidUtilities.dp(2)) / buttonsCount;
+                    int i = 0;
+                    int j = 0;
                     for (int b = 0; b < buttonsCount; b++) {
                         TLRPC.TL_reactionCount reaction = messageObject.messageOwner.reactions.results.get(b);
                         BotButton botButton = new BotButton();
@@ -5959,19 +5961,44 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                         }
                         botButtonsByData.put(key, botButton);
                         botButtonsByPosition.put(position, botButton);
-                        botButton.x = b * (buttonWidth + AndroidUtilities.dp(5));
-                        botButton.y = AndroidUtilities.dp(5);
+                        botButton.x = j * (buttonWidth + AndroidUtilities.dp(5));
+                        botButton.y = i * AndroidUtilities.dp(22);
                         botButton.width = buttonWidth;
-                        botButton.height = AndroidUtilities.dp(44);
+                        botButton.height = AndroidUtilities.dp(20);
 
                         TextPaint botButtonPaint = (TextPaint) getThemedPaint(Theme.key_paint_chatBotButton);
-                        CharSequence buttonText = Emoji.replaceEmoji(String.format("%d %s", reaction.count, reaction.reaction), botButtonPaint.getFontMetricsInt(), AndroidUtilities.dp(15), false);
-                        buttonText = TextUtils.ellipsize(buttonText, botButtonPaint, buttonWidth - AndroidUtilities.dp(10), TextUtils.TruncateAt.END);
+                        CharSequence buttonText = Emoji.replaceEmoji(
+                                reaction.reaction + " " + reaction.count,
+                                botButtonPaint.getFontMetricsInt(),
+                                AndroidUtilities.dp(15),
+                                false
+                        );
+                        buttonText = TextUtils.ellipsize(
+                                buttonText,
+                                botButtonPaint,
+                                buttonWidth - AndroidUtilities.dp(10),
+                                TextUtils.TruncateAt.END
+                        );
 
-                        botButton.title = new StaticLayout(buttonText, botButtonPaint, buttonWidth - AndroidUtilities.dp(10), Layout.Alignment.ALIGN_CENTER, 1.0f, 0.0f, false);
+                        botButton.title = new StaticLayout(
+                                buttonText,
+                                botButtonPaint,
+                                buttonWidth - AndroidUtilities.dp(10),
+                                Layout.Alignment.ALIGN_CENTER,
+                                1.0f,
+                                0.0f,
+                                false
+                        );
                         botButtons.add(botButton);
                         if (b == buttonsCount - 1) {
                             maxButtonsWidth = Math.max(maxButtonsWidth, botButton.x + botButton.width);
+                        }
+                        j++;
+                        if (b == 0) {
+                            // i++;
+                        } else if (b % 4 == 0) {
+                            i++;
+                            j = 0;
                         }
                     }
                 }
@@ -8284,7 +8311,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             }
 
             canvas.save();
-            canvas.translate(button.x + addX + AndroidUtilities.dp(5), y + (AndroidUtilities.dp(44) - button.title.getLineBottom(button.title.getLineCount() - 1)) / 2);
+            canvas.translate(
+                    button.x + addX + AndroidUtilities.dp(5),
+                    y + (AndroidUtilities.dp(20) - button.title.getLineBottom(button.title.getLineCount() - 1)) / 2
+            );
             button.title.draw(canvas);
             canvas.restore();
             if (button.button instanceof TLRPC.TL_keyboardButtonUrl) {
