@@ -2662,7 +2662,18 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         TLRPC.TL_messages_sendReaction req = new TLRPC.TL_messages_sendReaction();
         req.peer = getMessagesController().getInputPeer(messageObject.getDialogId());
         req.msg_id = messageObject.getId();
-        if (reaction != null) {
+        boolean isChosen = false;
+        String reactionLast = "";
+        if (messageObject.getReactions() != null) {
+            for (TLRPC.TL_reactionCount reactionCount : messageObject.getReactions().results) {
+                if (reactionCount.chosen) {
+                    isChosen = true;
+                    reactionLast = reactionCount.reaction;
+                    break;
+                }
+            }
+        }
+        if (reaction != null && (!isChosen || !reactionLast.equals(reaction))) {
             req.reaction = reaction.toString();
             req.flags |= 1;
         }
@@ -2670,42 +2681,49 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             if (response != null) {
                 getMessagesController().processUpdates((TLRPC.Updates) response, false);
             }
-            /*AndroidUtilities.runOnUIThread(new Runnable() {
-                @Override
-                public void run() {
-                    waitingForVote.remove(key);
-                    if (finishRunnable != null) {
-                        finishRunnable.run();
-                    }
-                }
-            });*/
         });
     }
 
-    public void sendFastReaction(MessageObject messageObject, ChatActivity parentFragment, ArrayList<TLRPC.TL_availableReaction> availableReaction) {
+    public void sendFastReaction(MessageObject messageObject, ChatActivity parentFragment, boolean isChat, ArrayList<TLRPC.TL_availableReaction> availableReaction) {
         if (messageObject == null || parentFragment == null) {
             return;
         }
         TLRPC.TL_messages_sendReaction req = new TLRPC.TL_messages_sendReaction();
         req.peer = getMessagesController().getInputPeer(messageObject.getDialogId());
         req.msg_id = messageObject.getId();
-        boolean isMin = messageObject.getReactions().min;
-        if (!isMin) {
+
+        TLRPC.TL_availableReaction reactionHeart = null;
+        TLRPC.TL_availableReaction reactionUp = null;
+        boolean isChosen = false;
+        for (TLRPC.TL_reactionCount reactionCount : messageObject.getReactions().results) {
+            if (reactionCount.chosen) {
+                isChosen = true;
+                break;
+            }
+        }
+        if (!isChosen) {
             for (TLRPC.TL_availableReaction reaction : availableReaction) {
-                if (reaction.title.equals("❤")) {
-                    req.reaction = reaction.toString();
-                    req.flags |= 1;
-                    break;
-                } else if (reaction.title.equals("\uD83D\uDC4D")) {
-                    req.reaction = reaction.toString();
-                    req.flags |= 1;
-                    break;
+                if (reaction.reaction.equals("❤")) {
+                    reactionHeart = reaction;
+                } else if (reaction.reaction.equals("\uD83D\uDC4D")) {
+                    reactionUp = reaction;
                 }
+            }
+            if (reactionHeart != null) {
+                req.reaction = reactionHeart.reaction;
+                req.flags |= 1;
+            } else if (reactionUp != null) {
+                req.reaction = reactionUp.reaction;
+                req.flags |= 1;
             }
         }
         getConnectionsManager().sendRequest(req, (response, error) -> {
             if (response != null) {
+                Log.i("telegramTest", "reaction send success");
                 getMessagesController().processUpdates((TLRPC.Updates) response, false);
+            }
+            if (error != null) {
+                Log.i("telegramTest", "reaction send failed: " + error.text);
             }
         });
     }

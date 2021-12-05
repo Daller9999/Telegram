@@ -227,9 +227,12 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
         TLRPC.TL_messages_getMessageReactionsList getMessageReactionsList = new TLRPC.TL_messages_getMessageReactionsList();
         getMessageReactionsList.id = message.getId();
         getMessageReactionsList.peer = messagesController.getInputPeer(chatId);
+        getMessageReactionsList.limit = 100;
         connectionsManager.sendRequest(getMessageReactionsList, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
             if (response != null) {
                 TLRPC.TL_messages_messageReactionsList list = (TLRPC.TL_messages_messageReactionsList) response;
+                if (reactions == null) return;
+
                 updateList(reactions, list);
                 Log.i("telegramTest", "response get reaction list success");
             }
@@ -279,11 +282,11 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
         ArrayList<ArrayList<UserReaction>> userReactionList = new ArrayList<>();
         userReactionList.add(userReactions);
 
-        maxSize = 0;
+        maxSize = totalReactions.get(0).count;
         ArrayList<UserReaction> arrayList;
         for (TLRPC.TL_availableReaction reaction : currentReaction) {
             arrayList = hashMap.get(reaction);
-            if (arrayList.size() > maxSize) {
+            if (arrayList != null && arrayList.size() > maxSize) {
                 maxSize = arrayList.size();
             }
             userReactionList.add(arrayList);

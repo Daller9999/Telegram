@@ -10,10 +10,13 @@ package org.telegram.ui.Cells;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.view.GestureDetector;
 import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
+
+import org.telegram.ui.Components.GestureDetector2;
 
 public abstract class BaseCell extends ViewGroup {
 

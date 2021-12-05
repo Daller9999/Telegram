@@ -105,52 +105,35 @@ public class ActionBarReactionsItem extends FrameLayout {
         this.itemHeight = itemHeight;
     }
 
-    public void setMessage(MessageObject message, ChatActivity chatActivity, long chatId) {
+    public void setMessage(MessageObject message, ChatActivity chatActivity) {
         this.message = message;
         TLRPC.TL_messageReactions reactions = message.getReactions();
         if (reactions == null) return;
 
         String text = reactions.results.size() + " Reactions";
         textView.setText(text);
-
         currentAccount = UserConfig.selectedAccount;
-
         MessagesController messagesController = chatActivity.getMessagesController();
-        ConnectionsManager connectionsManager = chatActivity.getConnectionsManager();
-
-        TLRPC.TL_messages_getMessageReactionsList getMessageReactionsList = new TLRPC.TL_messages_getMessageReactionsList();
-        getMessageReactionsList.id = message.getId();
-        getMessageReactionsList.peer = messagesController.getInputPeer(chatId);
-        connectionsManager.sendRequest(getMessageReactionsList, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
-            if (response != null) {
-                TLRPC.TL_messages_messageReactionsList list = (TLRPC.TL_messages_messageReactionsList) response;
-                Log.i("telegramTest", "response get reaction list success");
-                showLastReactions(list, messagesController);
-            }
-            if (error != null) {
-                Log.i("telegramTest", "response get reaction list failed: " + error.text);
-            }
-        }));
+        showLastReactions(reactions, messagesController);
     }
 
-    private void showLastReactions(TLRPC.TL_messages_messageReactionsList list, MessagesController messagesController) {
+    private void showLastReactions(TLRPC.TL_messageReactions list, MessagesController messagesController) {
         int i = 0;
         BackupImageView imageView;
         AvatarDrawable avatarDrawable;
         int rightMargin = 0;
 
-        for (TLRPC.User userReaction : list.users) {
+        for (TLRPC.TL_messageUserReaction userReaction : list.recent_reactons) {
             if (i == 3) {
                 break;
             }
 
-            TLRPC.Chat chat = messagesController.getChat(userReaction.id);
-            TLRPC.User user = messagesController.getUser(userReaction.id);
-            if (user != null || chat != null) {
+            TLRPC.User user = messagesController.getUser(userReaction.user_id);
+            if (user != null) {
                 avatarDrawable = new AvatarDrawable();
                 imageView = new BackupImageView(getContext());
-                imageView.setForUserOrChat(chat == null ? user : chat, avatarDrawable);
-                avatarDrawable.setInfo(chat == null ? user : chat);
+                imageView.setForUserOrChat(user, avatarDrawable);
+                avatarDrawable.setInfo(user);
                 imageView.setRoundRadius(AndroidUtilities.dp(20));
                 imageView.setLayoutParams(LayoutHelper.createFrame(
                         30, 30,

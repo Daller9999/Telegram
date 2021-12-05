@@ -50,10 +50,11 @@ import android.text.TextUtils;
 import android.text.style.CharacterStyle;
 import android.text.style.ClickableSpan;
 import android.text.style.URLSpan;
+import android.util.Log;
 import android.util.Property;
 import android.util.SparseArray;
 import android.util.StateSet;
-import android.view.Gravity;
+import android.view.GestureDetector;
 import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.SoundEffectConstants;
@@ -68,8 +69,6 @@ import android.view.animation.Interpolator;
 import android.widget.Toast;
 
 import androidx.core.graphics.ColorUtils;
-
-import com.google.android.exoplayer2.util.Log;
 
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.AndroidUtilities;
@@ -114,7 +113,6 @@ import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.EmptyStubSpan;
 import org.telegram.ui.Components.FloatSeekBarAccessibilityDelegate;
 import org.telegram.ui.Components.InfiniteProgress;
-import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.LinkPath;
 import org.telegram.ui.Components.MediaActionDrawable;
 import org.telegram.ui.Components.MessageBackgroundDrawable;
@@ -148,7 +146,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 
-public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate, ImageReceiver.ImageReceiverDelegate, DownloadController.FileDownloadProgressListener, TextSelectionHelper.SelectableView {
+public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate,
+        ImageReceiver.ImageReceiverDelegate,
+        DownloadController.FileDownloadProgressListener,
+        TextSelectionHelper.SelectableView
+{
 
     public RadialProgress2 getRadialProgress() {
         return radialProgress;
@@ -283,7 +285,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             return false;
         }
 
-        default void onDoubleTap(MessageObject messageObject) { }
+        default void onDoubleTap(MessageObject messageObject, boolean isChat) { }
     }
 
     private final static int DOCUMENT_ATTACH_TYPE_NONE = 0;
@@ -2057,16 +2059,65 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         return result;
     }
 
-    private long lastTapTime = System.currentTimeMillis();
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_DOWN && currentMessageObject != null && System.currentTimeMillis() - lastTapTime < 100) {
-            delegate.onDoubleTap(currentMessageObject);
-            lastTapTime = System.currentTimeMillis();
+    private GestureDetector gestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener()  {
+        @Override
+        public boolean onDown(MotionEvent e) {
+            return onTouchEventSimple(e);
+        }
+
+        @Override
+        public void onShowPress(MotionEvent e) {
+
+        }
+
+        @Override
+        public boolean onSingleTapUp(MotionEvent e) {
+            return onTouchEventSimple(e);
+        }
+
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+
             return true;
         }
-        lastTapTime = System.currentTimeMillis();
 
+        @Override
+        public void onLongPress(MotionEvent e) {
+
+        }
+
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            return true;
+        }
+
+        @Override
+        public boolean onSingleTapConfirmed(MotionEvent e) {
+            return true;
+        }
+
+        @Override
+        public boolean onDoubleTap(MotionEvent e) {
+            return true;
+        }
+
+        @Override
+        public boolean onDoubleTapEvent(MotionEvent e) {
+            MessageObject messageObject = getMessageObject();
+            if (messageObject != null) {
+                delegate.onDoubleTap(messageObject, isChat);
+            }
+            return true;
+        }
+    });
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        return onTouchEventSimple(event);
+    }
+
+
+    public boolean onTouchEventSimple(MotionEvent event) {
         if (currentMessageObject == null || !delegate.canPerformActions() || animationRunning) {
             checkTextSelection(event);
             return super.onTouchEvent(event);
@@ -2136,7 +2187,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             result = checkPollButtonMotionEvent(event);
         }
 
-        if (event.getAction() == MotionEvent.ACTION_CANCEL) {
+        if (event.getAction() == MotionEvent.ACTION_CANCEL || event.getAction() == MotionEvent.ACTION_UP) {
             buttonPressed = 0;
             miniButtonPressed = 0;
             pressedBotButton = -1;
@@ -2251,7 +2302,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                                 delegate.didPressChannelAvatar(this, chat != null ? chat : currentChat, id, lastTouchX, lastTouchY);
                             }
                         }
-                    } else if (event.getAction() == MotionEvent.ACTION_CANCEL) {
+                    } else if (event.getAction() == MotionEvent.ACTION_CANCEL || event.getAction() == MotionEvent.ACTION_UP) {
                         avatarPressed = false;
                     } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
                         if (isAvatarVisible && !avatarImage.isInsideImage(x, y + getTop())) {
@@ -2281,7 +2332,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                                 delegate.didPressHiddenForward(this);
                             }
                         }
-                    } else if (event.getAction() == MotionEvent.ACTION_CANCEL) {
+                    } else if (event.getAction() == MotionEvent.ACTION_CANCEL || event.getAction() == MotionEvent.ACTION_UP) {
                         forwardNamePressed = false;
                     } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
                         if (!(x >= forwardNameX && x <= forwardNameX + forwardedNameWidth && y >= forwardNameY && y <= forwardNameY + AndroidUtilities.dp(32))) {
@@ -2295,7 +2346,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                         if (delegate != null) {
                             delegate.didPressViaBot(this, currentViaBotUser != null ? currentViaBotUser.username : currentMessageObject.messageOwner.via_bot_name);
                         }
-                    } else if (event.getAction() == MotionEvent.ACTION_CANCEL) {
+                    } else if (event.getAction() == MotionEvent.ACTION_CANCEL || event.getAction() == MotionEvent.ACTION_UP) {
                         forwardBotPressed = false;
                     } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
                         if (drawForwardedName && forwardedNameLayout[0] != null) {
@@ -2327,7 +2378,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                                 delegate.didPressReplyMessage(this, currentMessageObject.getReplyMsgId());
                             }
                         }
-                    } else if (event.getAction() == MotionEvent.ACTION_CANCEL) {
+                    } else if (event.getAction() == MotionEvent.ACTION_CANCEL || event.getAction() == MotionEvent.ACTION_UP) {
                         replyPressed = false;
                     } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
                         int replyEnd;
@@ -2351,7 +2402,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                                 delegate.didPressSideButton(this);
                             }
                         }
-                    } else if (event.getAction() == MotionEvent.ACTION_CANCEL) {
+                    } else if (event.getAction() == MotionEvent.ACTION_CANCEL || event.getAction() == MotionEvent.ACTION_UP) {
                         sideButtonPressed = false;
                     } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
                         if (!(x >= sideStartX && x <= sideStartX + AndroidUtilities.dp(40) && y >= sideStartY && y <= sideStartY + AndroidUtilities.dp(32 + (drawSideButton == 3 && commentLayout != null ? 18 : 0)))) {
@@ -9594,11 +9645,12 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         currentTimeString = "";
         if (!isChat) {
             TLRPC.TL_messageReactions reactions = currentMessageObject.getReactions();
+            TextPaint botButtonPaint = (TextPaint) getThemedPaint(Theme.key_paint_chatBotButton);
             if (reactions != null && reactions.results != null && !reactions.results.isEmpty()) {
                 for (TLRPC.TL_reactionCount results : reactions.results) {
                     reactionsString += Emoji.replaceEmoji(
                             results.reaction,
-                            Theme.chat_timePaint.getFontMetricsInt(),
+                            botButtonPaint.getFontMetricsInt(),
                             AndroidUtilities.dp(10),
                             false
                     ) + " ";

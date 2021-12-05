@@ -20000,11 +20000,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             if (!availableReactions.isEmpty() && !isChannel) {
                 actionBarFullReactionsInfo.setMessage(message, this, dialog_id, availableReactions);
 
-                if (message.getReactions() != null) {
+                if (message.getReactions() != null && !message.getReactions().results.isEmpty()) {
                     actionBarReactionsItem = new ActionBarReactionsItem(getParentActivity(), themeDelegate);
                     actionBarReactionsItem.setTextAndIcon("Reactions", R.drawable.actions_reactions);
                     actionBarReactionsItem.setItemHeight(56);
-                    actionBarReactionsItem.setMessage(message, this, dialog_id);
+                    actionBarReactionsItem.setMessage(message, this);
                     popupLayout.addView(actionBarReactionsItem);
 
                     View view = new View(getParentActivity());
@@ -22661,8 +22661,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 ChatMessageCell chatMessageCell = (ChatMessageCell) view;
                 chatMessageCell.setDelegate(new ChatMessageCell.ChatMessageCellDelegate() {
                     @Override
-                    public void onDoubleTap(MessageObject messageObject) {
-                        getSendMessagesHelper().sendFastReaction(messageObject, ChatActivity.this, availableReactions);
+                    public void onDoubleTap(MessageObject messageObject, boolean isChat) {
+                        getSendMessagesHelper().sendFastReaction(messageObject, ChatActivity.this, isChat, availableReactions);
                     }
 
                     @Override

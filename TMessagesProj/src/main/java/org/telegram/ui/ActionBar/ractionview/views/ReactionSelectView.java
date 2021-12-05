@@ -15,6 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ImageLocation;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
@@ -36,7 +37,9 @@ public class ReactionSelectView extends FrameLayout {
     private View viewBackShadow;
     private final int defaultHeight = 55;
     private final int defaultReactionSize = 35;
+    private ArrayList<BackupImageView> imageViews = new ArrayList<>();
     private OnReactionCallBack onReactionCallBack;
+    private ArrayList<TLRPC.TL_availableReaction> reactions = new ArrayList<>();
 
     public ReactionSelectView(@NonNull Context context) {
         super(context);
@@ -70,6 +73,10 @@ public class ReactionSelectView extends FrameLayout {
 
     public void setReactions(ArrayList<TLRPC.TL_availableReaction> reactions) {
         layoutReactions.removeAllViews();
+        imageViews.clear();
+        this.reactions.clear();
+        this.reactions.addAll(reactions);
+
         int widthBack;
         int widthHorizontal;
         if (reactions.size() == 1) {
@@ -129,6 +136,48 @@ public class ReactionSelectView extends FrameLayout {
                     Gravity.LEFT | Gravity.TOP,
                     5f, 9f, 0f, 0f));
             layoutReactions.addView(imageView);
+            imageViews.add(imageView);
+        }
+        AndroidUtilities.runOnUIThread(this::runAnim, 500);
+    }
+
+    private void runAnim() {
+        int i = 0;
+        for (BackupImageView imageView : imageViews) {
+            int a = 1 + (int) (Math.random() * 10);
+            if (a <= 4) {
+                imageView.setImage(
+                        ImageLocation.getForDocument(reactions.get(i).activate_animation),
+                        "50_50",
+                        "webp",
+                        null,
+                        layoutReactions
+                );
+            } else {
+                imageView.setImage(
+                        ImageLocation.getForDocument(reactions.get(i).static_icon),
+                        "50_50",
+                        "webp",
+                        null,
+                        layoutReactions
+                );
+            }
+            i++;
+        }
+        AndroidUtilities.runOnUIThread(this::stopAnim, 5000);
+    }
+
+    private void stopAnim() {
+        int i = 0;
+        for (BackupImageView imageView : imageViews) {
+            imageView.setImage(
+                    ImageLocation.getForDocument(reactions.get(i).static_icon),
+                    "50_50",
+                    "webp",
+                    null,
+                    layoutReactions
+            );
+            i++;
         }
     }
 
