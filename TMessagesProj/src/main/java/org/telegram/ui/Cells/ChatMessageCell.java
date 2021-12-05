@@ -282,6 +282,8 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         default boolean isLandscape() {
             return false;
         }
+
+        default void onDoubleTap(MessageObject messageObject) { }
     }
 
     private final static int DOCUMENT_ATTACH_TYPE_NONE = 0;
@@ -2055,8 +2057,16 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         return result;
     }
 
+    private long lastTapTime = System.currentTimeMillis();
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN && currentMessageObject != null && System.currentTimeMillis() - lastTapTime < 100) {
+            delegate.onDoubleTap(currentMessageObject);
+            lastTapTime = System.currentTimeMillis();
+            return true;
+        }
+        lastTapTime = System.currentTimeMillis();
+
         if (currentMessageObject == null || !delegate.canPerformActions() || animationRunning) {
             checkTextSelection(event);
             return super.onTouchEvent(event);
@@ -9586,7 +9596,12 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             TLRPC.TL_messageReactions reactions = currentMessageObject.getReactions();
             if (reactions != null && reactions.results != null && !reactions.results.isEmpty()) {
                 for (TLRPC.TL_reactionCount results : reactions.results) {
-                    reactionsString += results.reaction + " ";
+                    reactionsString += Emoji.replaceEmoji(
+                            results.reaction,
+                            Theme.chat_timePaint.getFontMetricsInt(),
+                            AndroidUtilities.dp(10),
+                            false
+                    ) + " ";
                 }
             }
             currentTimeString = reactionsString;

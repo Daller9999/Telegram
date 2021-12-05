@@ -42,6 +42,8 @@ import androidx.annotation.UiThread;
 import androidx.collection.LongSparseArray;
 import androidx.core.view.inputmethod.InputContentInfoCompat;
 
+import com.google.android.exoplayer2.util.Log;
+
 import org.json.JSONObject;
 import org.telegram.messenger.audioinfo.AudioInfo;
 import org.telegram.messenger.support.SparseLongArray;
@@ -2679,6 +2681,35 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
             });*/
         });
     }
+
+    public void sendFastReaction(MessageObject messageObject, ChatActivity parentFragment, ArrayList<TLRPC.TL_availableReaction> availableReaction) {
+        if (messageObject == null || parentFragment == null) {
+            return;
+        }
+        TLRPC.TL_messages_sendReaction req = new TLRPC.TL_messages_sendReaction();
+        req.peer = getMessagesController().getInputPeer(messageObject.getDialogId());
+        req.msg_id = messageObject.getId();
+        boolean isMin = messageObject.getReactions().min;
+        if (!isMin) {
+            for (TLRPC.TL_availableReaction reaction : availableReaction) {
+                if (reaction.title.equals("❤")) {
+                    req.reaction = reaction.toString();
+                    req.flags |= 1;
+                    break;
+                } else if (reaction.title.equals("\uD83D\uDC4D")) {
+                    req.reaction = reaction.toString();
+                    req.flags |= 1;
+                    break;
+                }
+            }
+        }
+        getConnectionsManager().sendRequest(req, (response, error) -> {
+            if (response != null) {
+                getMessagesController().processUpdates((TLRPC.Updates) response, false);
+            }
+        });
+    }
+
 
     public void requestUrlAuth(String url, ChatActivity parentFragment, boolean ask) {
         TLRPC.TL_messages_requestUrlAuth req = new TLRPC.TL_messages_requestUrlAuth();

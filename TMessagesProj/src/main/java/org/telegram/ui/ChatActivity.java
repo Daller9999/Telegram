@@ -22660,6 +22660,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
                 ChatMessageCell chatMessageCell = (ChatMessageCell) view;
                 chatMessageCell.setDelegate(new ChatMessageCell.ChatMessageCellDelegate() {
+                    @Override
+                    public void onDoubleTap(MessageObject messageObject) {
+                        getSendMessagesHelper().sendFastReaction(messageObject, ChatActivity.this, availableReactions);
+                    }
 
                     @Override
                     public void didPressHint(ChatMessageCell cell, int type) {
