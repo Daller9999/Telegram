@@ -1291,7 +1291,9 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
     }
 
     private String getAvailableReactions() {
-        return (info == null ? "0" : info.available_reactions.size()) + "/" + reactionsAvailableCount;
+        return info == null || info.available_reactions == null || info.available_reactions.isEmpty()
+                ? "Off"
+                : info.available_reactions.size() + "/" + reactionsAvailableCount;
     }
 
     private void updateFields(boolean updateChat) {

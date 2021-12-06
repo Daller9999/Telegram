@@ -60,6 +60,8 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
     private int maxSize;
     private View viewDivide;
     private View viewDivideGray;
+    private long chatId = 0;
+    private ConnectionsManager connectionsManager;
 
     public interface OnButtonBack {
         void onBackPressed();
@@ -218,23 +220,35 @@ public class ActionBarFullReactionsInfo extends FrameLayout {
             ArrayList<TLRPC.TL_availableReaction> availableReactions
     ) {
         this.message = message;
+        this.chatId = chatId;
         this.availableReactions = availableReactions;
-        TLRPC.TL_messageReactions reactions = message.getReactions();
 
         messagesController = chatActivity.getMessagesController();
-        ConnectionsManager connectionsManager = chatActivity.getConnectionsManager();
+        connectionsManager = chatActivity.getConnectionsManager();
 
+        TLRPC.TL_messageReactions reactions = message.getReactions();
+        if (reactions != null) {
+            madeRequestList(null);
+        }
+    }
+
+    private void madeRequestList(String nextOffset) {
         TLRPC.TL_messages_getMessageReactionsList getMessageReactionsList = new TLRPC.TL_messages_getMessageReactionsList();
         getMessageReactionsList.id = message.getId();
         getMessageReactionsList.peer = messagesController.getInputPeer(chatId);
         getMessageReactionsList.limit = 100;
+        if (nextOffset != null) {
+            getMessageReactionsList.offset = nextOffset;
+        }
         connectionsManager.sendRequest(getMessageReactionsList, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
             if (response != null) {
                 TLRPC.TL_messages_messageReactionsList list = (TLRPC.TL_messages_messageReactionsList) response;
-                if (reactions == null) return;
-
-                updateList(reactions, list);
-                Log.i("telegramTest", "response get reaction list success");
+                if (list.next_offset != null) {
+                    madeRequestList(list.next_offset);
+                } else {
+                    updateList(message.getReactions(), list);
+                    Log.i("telegramTest", "response get reaction list success");
+                }
             }
             if (error != null) {
                 Log.i("telegramTest", "response get reaction list failed: " + error.text);
