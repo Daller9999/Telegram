@@ -16,6 +16,8 @@ import android.view.MotionEvent;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 
+import com.google.android.exoplayer2.util.Log;
+
 import org.telegram.ui.Components.GestureDetector2;
 
 public abstract class BaseCell extends ViewGroup {
